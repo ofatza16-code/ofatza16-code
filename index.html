@@ -2040,7 +2040,7 @@ window.QH = (function () {
 </script>
 <script>
 window.PN = (function () {
-  function makeRow(desc, qty, price) {
+  function makeRow(desc, qty, price, image) {
     const div = document.createElement('div');
     div.className = 'group relative bg-surface-container-low p-md rounded-lg border border-outline-variant flex flex-col md:flex-row gap-md items-start animate-fade-in';
     div.innerHTML = `
@@ -2060,13 +2060,55 @@ window.PN = (function () {
         <label class="font-label-caps text-label-caps text-on-surface-variant block mb-xs text-right">ยอดรวม</label>
         <span class="row-total font-mono-data text-mono-data py-xs">0.00</span>
       </div>
+      <div class="w-full md:w-auto flex flex-col items-start md:items-center gap-xs">
+        <label class="font-label-caps text-label-caps text-on-surface-variant block mb-xs md:opacity-0 select-none">รูปภาพ</label>
+        <input type="file" accept="image/*" class="image-input hidden" onchange="PN.handleImageSelect(this)">
+        <div class="flex items-center gap-xs">
+          <img class="row-thumb ${image ? '' : 'hidden'} w-10 h-10 rounded-md object-cover border border-outline-variant cursor-pointer" src="${image || ''}" onclick="PN.viewImage(this)" title="ดูรูปภาพ">
+          <button type="button" class="attach-btn flex items-center gap-1 text-primary font-label-caps text-label-caps hover:underline" onclick="this.parentElement.parentElement.querySelector('.image-input').click()">
+            <span class="material-symbols-outlined text-[18px]">attach_file</span><span class="attach-label">${image ? 'เปลี่ยนรูป' : 'แนบรูป'}</span>
+          </button>
+        </div>
+      </div>
       <button type="button" class="absolute top-2 right-2 md:static text-error opacity-0 group-hover:opacity-100 transition-opacity" onclick="PN.removeRow(this)"><span class="material-symbols-outlined">delete</span></button>
     `;
+    if (image) div.dataset.image = image;
     return div;
   }
 
-  function addItem(desc, qty, price) {
-    document.getElementById('line-items-container').appendChild(makeRow(desc, qty, price));
+  function handleImageSelect(input) {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    if (file.size > 3 * 1024 * 1024) {
+      qmsToast('ไฟล์รูปภาพต้องมีขนาดไม่เกิน 3MB', 'error');
+      input.value = '';
+      return;
+    }
+    const row = input.closest('.group');
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result;
+      row.dataset.image = dataUrl;
+      const thumb = row.querySelector('.row-thumb');
+      thumb.src = dataUrl;
+      thumb.classList.remove('hidden');
+      row.querySelector('.attach-label').textContent = 'เปลี่ยนรูป';
+      qmsToast('แนบรูปภาพแล้ว', 'success');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function viewImage(imgEl) {
+    if (!imgEl.src) return;
+    const overlay = document.createElement('div');
+    overlay.className = 'fixed inset-0 bg-black/70 z-[9999] flex items-center justify-center p-lg';
+    overlay.innerHTML = `<img src="${imgEl.src}" class="max-w-full max-h-full rounded-lg shadow-2xl">`;
+    overlay.addEventListener('click', () => overlay.remove());
+    document.body.appendChild(overlay);
+  }
+
+  function addItem(desc, qty, price, image) {
+    document.getElementById('line-items-container').appendChild(makeRow(desc, qty, price, image));
     calcPO();
   }
 
@@ -2103,7 +2145,8 @@ window.PN = (function () {
       const desc = row.querySelector('.desc').value.trim();
       const qty = parseFloat(row.querySelector('.qty').value) || 0;
       const price = parseFloat(row.querySelector('.price').value) || 0;
-      if (desc && qty > 0) items.push({ desc, qty, price });
+      const image = row.dataset.image || null;
+      if (desc && qty > 0) items.push({ desc, qty, price, image });
     });
     return items;
   }
@@ -2128,7 +2171,7 @@ window.PN = (function () {
     addItem('Michelin Primacy 4 215/55R17', 4, 4500);
   }
 
-  return { addItem, removeRow, calcPO, init };
+  return { addItem, removeRow, calcPO, init, handleImageSelect, viewImage };
 })();
 
 </script>
