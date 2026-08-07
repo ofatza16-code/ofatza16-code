@@ -1897,7 +1897,15 @@ window.QP = (function () {
       btn.innerHTML = '<span class="material-symbols-outlined animate-spin">progress_activity</span> กำลังสร้าง PDF...';
       try {
         const root = document.getElementById("doc-root");
-        const canvas = await html2canvas(root, { scale: 2, backgroundColor: "#ffffff", useCORS: true });
+        if (document.fonts && document.fonts.ready) {
+          await document.fonts.ready;
+        }
+        const canvas = await html2canvas(root, {
+          scale: 3,
+          backgroundColor: "#ffffff",
+          useCORS: true,
+          letterRendering: true,
+        });
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF({ unit: "pt", format: "a4" });
         const margin = 24;
