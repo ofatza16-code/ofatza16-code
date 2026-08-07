@@ -2316,6 +2316,16 @@ window.PL = (function () {
                 <div class="${paid ? "text-on-surface-variant line-through decoration-outline-variant" : status === "overdue" ? "text-error" : "text-on-surface"} font-bold text-body-sm">฿ ${QMS.formatCurrency(p.total)}</div>
               </div>
               <h4 class="${paid ? "text-on-surface-variant" : "text-on-surface"} text-label-caps">${escapeHtml(p.vendorName)}</h4>
+              <div class="mt-xs flex flex-col gap-[2px]">
+                ${(p.items || [])
+                  .map(
+                    (it) => `<div class="text-[11px] text-on-surface-variant flex justify-between gap-sm">
+                      <span class="truncate">${escapeHtml(it.desc)}</span>
+                      <span class="whitespace-nowrap">${it.qty} × ฿${QMS.formatCurrency(it.price)}</span>
+                    </div>`
+                  )
+                  .join("")}
+              </div>
               <div class="flex items-center flex-wrap mt-sm justify-start gap-sm">
                 <p class="text-[10px] text-outline">${new Date(p.createdAt).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" })}</p>
                 <span class="status-chip ${STATUS_CHIP_CLASS[status]}"><span class="material-symbols-outlined text-[14px]">${STATUS_ICON[status]}</span>${STATUS_LABEL[status]}</span>
