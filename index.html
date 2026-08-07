@@ -6,6 +6,8 @@
 <title>QuoteExpert - Smart Quotation Management System</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&amp;display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
@@ -691,6 +693,10 @@ Back to Dashboard
 <button class="bg-blue-800 hover:bg-blue-900 text-white font-bold py-3 px-8 rounded-lg shadow-md transition flex items-center justify-center gap-2" onclick="window.print()">
 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg>
 Print / Export PDF
+</button>
+<button id="btn-share-line" class="bg-[#06C755] hover:bg-[#05b34c] text-white font-bold py-3 px-8 rounded-lg shadow-md transition flex items-center justify-center gap-2">
+<svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63h-1.755v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08 0 0-.141.848-.171 1.027-.053.303-.242 1.186 1.031.647 1.273-.54 6.874-4.05 9.378-6.937C23.281 14.588 24 12.545 24 10.314"/></svg>
+แชร์ไปยัง LINE
 </button>
 <button id="btn-approve" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg shadow-md transition flex items-center justify-center gap-2">
 <span class="material-symbols-outlined">check_circle</span> Mark as Approved
@@ -1880,6 +1886,62 @@ window.QP = (function () {
         await QMS.deleteQuotation(quotation.id);
         qmsToast("ลบใบเสนอราคาแล้ว", "success");
         setTimeout(() => navigate("quotation-history"), 400);
+      }
+    });
+
+    document.getElementById("btn-share-line")?.addEventListener("click", async () => {
+      if (!quotation) return;
+      const btn = document.getElementById("btn-share-line");
+      const originalHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="material-symbols-outlined animate-spin">progress_activity</span> กำลังสร้าง PDF...';
+      try {
+        const root = document.getElementById("doc-root");
+        const canvas = await html2canvas(root, { scale: 2, backgroundColor: "#ffffff", useCORS: true });
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ unit: "pt", format: "a4" });
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const imgWidth = pageWidth;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        const imgData = canvas.toDataURL("image/png");
+        let heightLeft = imgHeight;
+        let position = 0;
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+        while (heightLeft > 0) {
+          position = heightLeft - imgHeight;
+          pdf.addPage();
+          pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+        }
+        const blob = pdf.output("blob");
+        const fileName = `quotation-${quotation.number}.pdf`;
+        const file = new File([blob], fileName, { type: "application/pdf" });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: `ใบเสนอราคา ${quotation.number}`,
+            text: `ใบเสนอราคา #${quotation.number} — ${quotation.customer || ""}`,
+          });
+          qmsToast("เปิดหน้าต่างแชร์แล้ว เลือกแอป LINE เพื่อส่งไฟล์", "success");
+        } else {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = fileName;
+          a.click();
+          URL.revokeObjectURL(url);
+          qmsToast("เบราว์เซอร์นี้แชร์ไฟล์ไปแอปอื่นโดยตรงไม่ได้ ระบบดาวน์โหลด PDF ให้แล้ว กรุณาเปิดแอป LINE แล้วแนบไฟล์นี้ด้วยตนเอง", "info");
+        }
+      } catch (err) {
+        if (err && err.name !== "AbortError") {
+          qmsToast("สร้าง/แชร์ PDF ไม่สำเร็จ: " + (err.message || err), "error");
+        }
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
       }
     });
   }
