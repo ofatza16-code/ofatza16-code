@@ -1023,6 +1023,7 @@ const QMS = (function () {
       vat: Number(row.vat),
       total: Number(row.total),
       status: row.status,
+      image: row.image || null,
       createdAt: row.created_at,
     };
   }
@@ -1159,6 +1160,7 @@ const QMS = (function () {
   async function updatePO(id, patch) {
     const row = {};
     if (patch.status) row.status = patch.status;
+    if (typeof patch.image !== "undefined") row.image = patch.image;
     if (patch.items) {
       const totals = calcTotals(patch.items);
       row.items = patch.items;
@@ -2247,6 +2249,11 @@ window.PL = (function () {
               <div class="flex items-center flex-wrap mt-sm justify-start gap-sm">
                 <p class="text-[10px] text-outline">${new Date(p.createdAt).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" })}</p>
                 <span class="status-chip ${STATUS_CHIP_CLASS[status]}"><span class="material-symbols-outlined text-[14px]">${STATUS_ICON[status]}</span>${STATUS_LABEL[status]}</span>
+                ${p.image ? `<img src="${p.image}" class="w-7 h-7 rounded-md object-cover border border-outline-variant cursor-pointer" onclick="PL.viewImage('${p.id}')" title="ดูรูปภาพ">` : ""}
+                <input type="file" accept="image/*" class="hidden po-image-input" data-id="${p.id}" onchange="PL.handleImageSelect(this)">
+                <button class="flex items-center justify-center p-1 text-primary hover:bg-primary-fixed rounded-lg transition-colors active:scale-95" title="${p.image ? "เปลี่ยนรูป" : "แนบรูป"}" onclick="this.parentElement.querySelector('.po-image-input').click()">
+                  <span class="material-symbols-outlined text-[18px]">attach_file</span>
+                </button>
                 <button class="flex items-center justify-center p-1 text-error hover:bg-error-container rounded-lg transition-colors active:scale-95" title="Delete" onclick="PL.removePO('${p.id}', '${p.number}')">
                   <span class="material-symbols-outlined text-[18px]">delete</span>
                 </button>
@@ -2288,6 +2295,34 @@ window.PL = (function () {
     }
   }
 
+  async function handleImageSelect(input) {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    if (file.size > 3 * 1024 * 1024) {
+      qmsToast("ไฟล์รูปภาพต้องมีขนาดไม่เกิน 3MB", "error");
+      input.value = "";
+      return;
+    }
+    const id = input.dataset.id;
+    const reader = new FileReader();
+    reader.onload = async () => {
+      await QMS.updatePO(id, { image: reader.result });
+      qmsToast("แนบรูปภาพแล้ว", "success");
+      render();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function viewImage(id) {
+    const po = await QMS.getPO(id);
+    if (!po || !po.image) return;
+    const overlay = document.createElement("div");
+    overlay.className = "fixed inset-0 bg-black/70 z-[9999] flex items-center justify-center p-lg";
+    overlay.innerHTML = `<img src="${po.image}" class="max-w-full max-h-full rounded-lg shadow-2xl">`;
+    overlay.addEventListener("click", () => overlay.remove());
+    document.body.appendChild(overlay);
+  }
+
   document.getElementById("pl-search-input").addEventListener("input", render);
   document.getElementById("pl-status-filter").addEventListener("change", render);
 
@@ -2306,7 +2341,7 @@ window.PL = (function () {
   });
 
 
-  return { init: render, removePO };
+  return { init: render, removePO, handleImageSelect, viewImage };
 })();
 
 </script>
