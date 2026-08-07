@@ -2319,9 +2319,9 @@ window.PL = (function () {
               <div class="mt-xs flex flex-col gap-[2px]">
                 ${(p.items || [])
                   .map(
-                    (it) => `<div class="text-[11px] text-on-surface-variant flex justify-between gap-sm">
-                      <span class="truncate">${escapeHtml(it.desc)}</span>
-                      <span class="whitespace-nowrap">${it.qty} × ฿${QMS.formatCurrency(it.price)}</span>
+                    (it) => `<div class="text-[11px] text-on-surface-variant flex items-center justify-between gap-sm">
+                      <span class="truncate min-w-0 flex-1">${escapeHtml(it.desc)}</span>
+                      <span class="whitespace-nowrap flex-shrink-0">${it.qty ?? 0} × ฿${QMS.formatCurrency(it.price)}</span>
                     </div>`
                   )
                   .join("")}
