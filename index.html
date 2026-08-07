@@ -1,0 +1,2271 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>QuoteExpert - Smart Quotation Management System</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+  tailwind.config =  {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "on-primary-fixed-variant": "#264191", "on-surface-variant": "#444651", "surface-dim": "#d9dadc",
+          "on-primary": "#ffffff", "on-error-container": "#93000a", "surface-container-lowest": "#ffffff",
+          "surface-container-highest": "#e1e2e4", "tertiary": "#232a36", "secondary-container": "#6cf8bb",
+          "surface-container": "#edeef0", "inverse-surface": "#2e3132", "background": "#f8f9fb",
+          "inverse-on-surface": "#f0f1f3", "outline-variant": "#c5c5d3", "on-tertiary-fixed-variant": "#404754",
+          "on-primary-fixed": "#00164e", "secondary": "#006c49", "on-tertiary-container": "#a5acbb",
+          "on-secondary-fixed-variant": "#005236", "primary-fixed-dim": "#b6c4ff", "secondary-fixed-dim": "#4edea3",
+          "on-secondary": "#ffffff", "inverse-primary": "#b6c4ff", "on-surface": "#191c1e",
+          "primary-container": "#1e3a8a", "surface-variant": "#e1e2e4", "on-background": "#191c1e",
+          "on-error": "#ffffff", "surface-container-low": "#f3f4f6", "primary": "#00236f", "outline": "#757682",
+          "surface-bright": "#f8f9fb", "error": "#ba1a1a", "surface-tint": "#4059aa", "primary-fixed": "#dce1ff",
+          "tertiary-fixed": "#dce2f3", "on-secondary-container": "#00714d", "on-tertiary": "#ffffff",
+          "on-tertiary-fixed": "#151c27", "tertiary-container": "#39404d", "error-container": "#ffdad6",
+          "surface": "#f8f9fb", "tertiary-fixed-dim": "#c0c7d6", "surface-container-high": "#e7e8ea",
+          "on-secondary-fixed": "#002113", "secondary-fixed": "#6ffbbe", "on-primary-container": "#90a8ff"
+        },
+        borderRadius: { DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px", sm: "0.125rem", md: "0.375rem" },
+        spacing: { xl: "32px", "2xl": "48px", gutter: "24px", sm: "8px", base: "4px", xs: "4px", "margin-mobile": "16px", lg: "24px", md: "16px", "3xl": "64px", "container-max": "1280px" },
+        fontFamily: { "label-caps": ["Inter"], display: ["Inter"], "body-lg": ["Inter"], "headline-md": ["Inter"], "headline-lg-mobile": ["Inter"], "mono-data": ["Inter"], "headline-lg": ["Inter"], "body-sm": ["Inter"] },
+        fontSize: {
+          "label-caps": ["12px", { lineHeight: "16px", letterSpacing: "0.05em", fontWeight: "600" }],
+          display: ["36px", { lineHeight: "44px", letterSpacing: "-0.02em", fontWeight: "700" }],
+          "body-lg": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+          "headline-md": ["20px", { lineHeight: "28px", fontWeight: "600" }],
+          "headline-lg-mobile": ["24px", { lineHeight: "32px", fontWeight: "600" }],
+          "mono-data": ["14px", { lineHeight: "20px", fontWeight: "500" }],
+          "headline-lg": ["28px", { lineHeight: "36px", letterSpacing: "-0.01em", fontWeight: "600" }],
+          "body-sm": ["14px", { lineHeight: "20px", fontWeight: "400" }]
+        }
+      }
+    }
+  };
+</script>
+<style>
+  :root { --qms-base-font: 'Inter', sans-serif; }
+  html, body { min-height: 100%; }
+  body { font-family: 'Inter', sans-serif; background-color: #f8f9fb; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; vertical-align: middle; }
+  .qms-page.hidden { display: none; }
+
+  /* Login */
+  #page-login { font-family: 'Inter', sans-serif; }
+  .card-shadow { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); }
+  .input-focus-glow:focus { box-shadow: 0 0 0 2px rgba(0,35,111,0.15); border-color: #00236f; }
+
+  /* Dashboard */
+  .tonal-layer-1 { background-color: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.02); }
+  #page-dashboard .status-chip {
+    padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600;
+  }
+
+  /* Quotation New */
+  #page-quotation-new { background-color: #F3F4F6; }
+  #page-quotation-new input:focus, #page-quotation-new select:focus, #page-quotation-new textarea:focus {
+    outline: none; box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.15);
+  }
+  .quotation-card { box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.02); }
+  .table-scroll::-webkit-scrollbar { height: 6px; }
+  .table-scroll::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 10px; }
+
+  /* Quotation Preview (printable document) */
+  #page-quotation-preview { font-family: 'Sarabun', sans-serif; background-color: #f4f7f6; }
+  .font-th-heading { font-weight: 700; }
+  .dashed-box { border: 1.5px dashed #333; }
+  .form-table th, .form-table td { border: 1px solid #333; padding: 4px 8px; }
+  .status-pill { padding: 4px 14px; border-radius: 9999px; font-size: 12px; font-weight: 700; }
+  @media print {
+    .no-print { display: none !important; }
+    .qms-page.hidden { display: none !important; }
+    body { background-color: white; }
+    #page-quotation-preview { padding: 0 !important; background-color: white !important; }
+    #doc-root { box-shadow: none !important; border: none !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
+    @page { margin: 12mm; }
+  }
+
+  /* Quotation History / PO List (shared list-page styles) */
+  #page-quotation-history .status-chip, #page-po-list .status-chip {
+    padding: 2px 10px; border-radius: 9999px; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;
+  }
+  .hide-scrollbar::-webkit-scrollbar { display: none; }
+  .custom-checkbox { width: 18px; height: 18px; accent-color: #00236f; }
+
+  /* PO New */
+  #page-po-new ::-webkit-scrollbar { width: 6px; }
+  #page-po-new ::-webkit-scrollbar-track { background: transparent; }
+  #page-po-new ::-webkit-scrollbar-thumb { background: #e1e2e4; border-radius: 10px; }
+  .shadow-soft { box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.02); }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+
+  /* Toast (JS-injected, no class needed) */
+
+</style>
+</head>
+<body class="bg-background text-on-background">
+
+<section id="page-login" class="qms-page hidden min-h-screen flex items-center justify-center p-md">
+<main class="w-full max-w-md flex flex-col gap-lg">
+<div class="flex flex-col items-center text-center gap-sm">
+<span class="material-symbols-outlined text-primary" style="font-size:40px;">request_quote</span>
+<h1 class="font-headline-lg text-headline-lg text-primary font-bold">QuoteExpert</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-xs">Professional Quotation Management</p>
+</div>
+<!-- Register Card (first-time setup) -->
+<div class="bg-surface-container-lowest p-xl rounded-xl card-shadow border border-outline-variant/30" id="register-card">
+<div class="mb-lg">
+<h2 class="font-headline-md text-headline-md text-on-surface">ตั้งค่าบัญชีผู้ใช้งาน</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">เข้าใช้งานครั้งแรก กรุณาตั้งอีเมลและรหัสผ่านสำหรับเข้าสู่ระบบ</p>
+</div>
+<form class="flex flex-col gap-lg" id="register-form">
+<div class="flex flex-col gap-xs">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase" for="reg-name">ชื่อผู้ใช้งาน</label>
+<input class="w-full px-md py-sm bg-surface-container-lowest border border-outline-variant rounded-lg font-body-lg text-body-lg text-on-surface input-focus-glow transition-all duration-200" id="reg-name" placeholder="John Doe" type="text">
+</div>
+<div class="flex flex-col gap-xs">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase" for="reg-email">Email Address</label>
+<input class="w-full px-md py-sm bg-surface-container-lowest border border-outline-variant rounded-lg font-body-lg text-body-lg text-on-surface input-focus-glow transition-all duration-200" id="reg-email" placeholder="admin@quoteexpert.com" type="email" required>
+</div>
+<div class="flex flex-col gap-xs">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase" for="reg-password">ตั้งรหัสผ่าน</label>
+<input class="w-full px-md py-sm bg-surface-container-lowest border border-outline-variant rounded-lg font-body-lg text-body-lg text-on-surface input-focus-glow transition-all duration-200" id="reg-password" placeholder="••••••••" type="password" required minlength="4">
+</div>
+<div class="flex flex-col gap-xs">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase" for="reg-password2">ยืนยันรหัสผ่าน</label>
+<input class="w-full px-md py-sm bg-surface-container-lowest border border-outline-variant rounded-lg font-body-lg text-body-lg text-on-surface input-focus-glow transition-all duration-200" id="reg-password2" placeholder="••••••••" type="password" required minlength="4">
+</div>
+<div class="flex flex-col gap-xs">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase" for="reg-code">รหัสลงทะเบียน</label>
+<input class="w-full px-md py-sm bg-surface-container-lowest border border-outline-variant rounded-lg font-body-lg text-body-lg text-on-surface input-focus-glow transition-all duration-200" id="reg-code" placeholder="กรอกรหัสลงทะเบียนที่ได้รับ" type="text" required>
+</div>
+<p id="register-error" class="hidden text-error font-body-sm text-body-sm"></p>
+<button class="w-full bg-primary text-on-primary font-headline-md text-headline-md py-sm rounded-lg hover:bg-primary-container hover:text-on-primary-container transition-all duration-200 active:scale-[0.98] card-shadow flex items-center justify-center gap-sm" id="register-submit" type="submit">
+<span id="register-submit-label">สร้างบัญชีและเข้าสู่ระบบ</span>
+</button>
+<p class="text-center font-body-sm text-body-sm text-on-surface-variant">
+มีบัญชีอยู่แล้ว?
+<a class="text-primary hover:underline font-medium" href="#" id="show-login-link">เข้าสู่ระบบ</a>
+</p>
+</form>
+</div>
+<!-- Login Card (returning user) -->
+<div class="hidden bg-surface-container-lowest p-xl rounded-xl card-shadow border border-outline-variant/30" id="login-card">
+<div class="mb-lg">
+<h2 class="font-headline-md text-headline-md text-on-surface">Welcome Back</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Please enter your details to sign in.</p>
+</div>
+<form class="flex flex-col gap-lg" id="login-form">
+<div class="flex flex-col gap-xs">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase" for="email">Email Address</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline">mail</span>
+<input class="w-full pl-[48px] pr-md py-sm bg-surface-container-lowest border border-outline-variant rounded-lg font-body-lg text-body-lg text-on-surface input-focus-glow transition-all duration-200" id="email" placeholder="admin@quoteexpert.com" type="email">
+</div>
+</div>
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between items-center">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase" for="password">Password</label>
+<a class="font-label-caps text-label-caps text-primary hover:underline transition-all" href="#" onclick="qmsToast('กรุณาติดต่อผู้ดูแลระบบเพื่อรีเซ็ตรหัสผ่าน','info');return false;">Forgot Password?</a>
+</div>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline">lock</span>
+<input class="w-full pl-[48px] pr-md py-sm bg-surface-container-lowest border border-outline-variant rounded-lg font-body-lg text-body-lg text-on-surface input-focus-glow transition-all duration-200" id="password" placeholder="••••••••" type="password">
+</div>
+</div>
+<div class="flex items-center gap-sm">
+<input class="w-base h-base rounded border-outline-variant text-primary focus:ring-primary" id="remember" type="checkbox">
+<label class="font-body-sm text-body-sm text-on-surface-variant select-none cursor-pointer" for="remember">Remember me for 30 days</label>
+</div>
+<p id="login-error" class="hidden text-error font-body-sm text-body-sm">อีเมลหรือรหัสผ่านไม่ถูกต้อง</p>
+<button class="w-full bg-primary text-on-primary font-headline-md text-headline-md py-sm rounded-lg hover:bg-primary-container hover:text-on-primary-container transition-all duration-200 active:scale-[0.98] card-shadow flex items-center justify-center gap-sm" id="login-submit" type="submit">
+<span id="login-submit-label">Sign In</span>
+</button>
+<p class="text-center font-body-sm text-body-sm text-on-surface-variant">
+ยังไม่มีบัญชี?
+<a class="text-primary hover:underline font-medium" href="#" id="show-register-link">สมัครใช้งาน</a>
+</p>
+</form>
+</div>
+<footer class="text-center">
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+QuoteExpert — Professional Quotation Management
+</p>
+</footer>
+</main>
+<div class="fixed inset-0 -z-10 pointer-events-none overflow-hidden opacity-40">
+<div class="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-primary-container/20 blur-3xl"></div>
+<div class="absolute top-[60%] -right-[5%] w-[30%] h-[30%] rounded-full bg-secondary-container/20 blur-3xl"></div>
+</div>
+</section>
+
+<section id="page-dashboard" class="qms-page hidden bg-background text-on-background min-h-screen">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-surface shadow-sm px-md py-sm">
+<div class="max-w-container-max mx-auto flex items-center justify-between">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary font-headline-md text-headline-md">request_quote</span>
+<h1 class="font-headline-md text-headline-md font-bold text-primary">QuoteExpert</h1>
+</div>
+<div class="flex items-center gap-md">
+<button class="p-xs hover:bg-surface-container-high transition-colors rounded-full" data-logout title="Log out">
+<span class="material-symbols-outlined text-on-surface-variant">logout</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden bg-primary text-on-primary flex items-center justify-center font-bold text-body-sm" data-user-initials>JD</div>
+</div>
+</div>
+</header>
+<!-- Sidebar (Desktop) -->
+<aside class="hidden md:flex fixed left-0 top-0 h-full w-[280px] z-40 bg-surface shadow-md flex-col gap-base p-md pt-24">
+<div class="flex flex-col gap-sm mb-lg">
+<a href="#dashboard" class="flex items-center gap-md bg-secondary-container text-on-secondary-container rounded-full px-md py-sm active:scale-95 transition-all duration-200">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-body-lg text-body-lg">Dashboard</span>
+</a>
+<a href="#quotation-new" class="flex items-center gap-md text-on-surface-variant px-md py-sm rounded-full hover:bg-surface-container-low transition-all duration-200">
+<span class="material-symbols-outlined">add_circle</span>
+<span class="font-body-lg text-body-lg">New Quotation</span>
+</a>
+<a href="#quotation-history" class="flex items-center gap-md text-on-surface-variant px-md py-sm rounded-full hover:bg-surface-container-low transition-all duration-200">
+<span class="material-symbols-outlined">history</span>
+<span class="font-body-lg text-body-lg">History</span>
+</a>
+<a href="#po-list" class="flex items-center gap-md text-on-surface-variant px-md py-sm rounded-full hover:bg-surface-container-low transition-all duration-200">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="font-body-lg text-body-lg">Purchase Orders</span>
+</a>
+</div>
+<div class="mt-auto border-t border-outline-variant pt-md">
+<a href="#" data-logout class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined">admin_panel_settings</span>
+</div>
+<div>
+<p class="font-label-caps text-label-caps text-on-surface" data-user-name>John Doe</p>
+<p class="text-[10px] text-on-surface-variant">Sign out</p>
+</div>
+</a>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="pt-24 pb-24 md:pb-8 md:pl-[300px] px-md md:pr-8 max-w-container-max mx-auto">
+<div class="flex flex-col gap-lg">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-md">
+<div>
+<h2 class="font-display text-display text-on-surface">Overview (ภาพรวม)</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Manage your quotation workflow with precision.</p>
+</div>
+<a href="#quotation-new" class="bg-primary text-on-primary px-lg py-md rounded-xl flex items-center justify-center gap-sm shadow-md hover:opacity-90 active:scale-95 transition-all">
+<span class="material-symbols-outlined">add</span>
+<span class="font-label-caps text-label-caps">สร้างใบเสนอราคาใหม่</span>
+</a>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+<a href="#po-list" class="tonal-layer-1 rounded-xl p-lg border border-outline-variant flex flex-col gap-md cursor-pointer hover:border-primary transition-colors">
+<div class="flex justify-between items-center">
+<h4 class="font-headline-md text-headline-md text-on-surface">สถานะการชำระเงิน (Payment)</h4>
+<span class="material-symbols-outlined text-outline">payments</span>
+</div>
+<div class="flex flex-col gap-lg justify-center flex-1">
+<div class="flex items-center justify-between px-md">
+<div class="text-center">
+<p class="font-display text-display text-secondary" id="stat-paid">฿0</p>
+<p class="font-label-caps text-label-caps text-on-surface-variant">ชำระเงินแล้ว (Paid)</p>
+</div>
+<div class="w-px h-12 bg-outline-variant"></div>
+<div class="text-center">
+<p class="font-display text-display text-error" id="stat-unpaid">฿0</p>
+<p class="font-label-caps text-label-caps text-on-surface-variant">ยังไม่ชำระเงิน (Unpaid)</p>
+</div>
+</div>
+<div class="px-md">
+<div class="h-6 w-full bg-surface-container-low rounded-full overflow-hidden flex">
+<div class="h-full bg-secondary" id="stat-paid-bar" style="width:0%"></div>
+<div class="h-full bg-error" id="stat-unpaid-bar" style="width:0%"></div>
+</div>
+<div class="flex justify-between mt-xs font-label-caps text-[10px] text-on-surface-variant">
+<span id="stat-paid-pct">0% Collected</span>
+<span id="stat-unpaid-pct">0% Outstanding</span>
+</div>
+</div>
+</div>
+</a>
+<div class="tonal-layer-1 rounded-xl p-lg border border-outline-variant flex flex-col gap-md">
+<div class="flex justify-between items-center">
+<h4 class="font-headline-md text-headline-md text-on-surface">สรุปใบสั่งซื้อ (Purchase Order Summary)</h4>
+<span class="material-symbols-outlined text-outline">shopping_cart</span>
+</div>
+<div class="flex flex-col gap-lg justify-center flex-1">
+<div class="flex items-center justify-between px-md">
+<div class="text-center">
+<p class="font-display text-display text-primary" id="stat-po-total">0</p>
+<p class="font-label-caps text-label-caps text-on-surface-variant">Total POs</p>
+</div>
+<div class="w-px h-12 bg-outline-variant"></div>
+<div class="text-center">
+<p class="font-display text-display text-secondary" id="stat-po-pending">0</p>
+<p class="font-label-caps text-label-caps text-on-surface-variant">Pending Delivery</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="tonal-layer-1 rounded-xl border border-outline-variant overflow-hidden">
+<div class="p-md bg-surface-container-low flex justify-between items-center">
+<h3 class="font-headline-md text-headline-md text-on-surface">รายการล่าสุด (Recent Quotes)</h3>
+<a href="#quotation-history" class="text-primary font-label-caps text-label-caps hover:underline">ดูทั้งหมด</a>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-lowest border-b border-outline-variant">
+<th class="px-md py-sm font-label-caps text-label-caps text-on-surface-variant whitespace-nowrap">เลขที่</th>
+<th class="px-md py-sm font-label-caps text-label-caps text-on-surface-variant whitespace-nowrap">ลูกค้า</th>
+<th class="px-md py-sm font-label-caps text-label-caps text-on-surface-variant whitespace-nowrap text-right">จำนวนเงิน</th>
+<th class="px-md py-sm font-label-caps text-label-caps text-on-surface-variant whitespace-nowrap">สถานะ</th>
+<th class="px-md py-sm font-label-caps text-label-caps text-on-surface-variant text-right"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant" id="recent-quotes-body">
+</tbody>
+</table>
+<p class="p-lg text-center text-on-surface-variant font-body-sm text-body-sm hidden" id="recent-quotes-empty">ยังไม่มีใบเสนอราคา — เริ่มต้นสร้างใบเสนอราคาแรกของคุณ</p>
+</div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-lg">
+<div class="tonal-layer-1 p-lg rounded-xl border border-outline-variant hover:border-primary transition-colors flex flex-col gap-base">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-primary p-xs bg-primary-fixed rounded-lg">calendar_month</span>
+</div>
+<p class="font-label-caps text-label-caps text-on-surface-variant mt-sm">ออกเดือนนี้ (This Month)</p>
+<p class="font-display text-display text-on-surface" id="stat-month">0</p>
+</div>
+<div class="tonal-layer-1 p-lg rounded-xl border border-outline-variant hover:border-primary transition-colors flex flex-col gap-base">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-primary p-xs bg-primary-fixed rounded-lg">event_note</span>
+</div>
+<p class="font-label-caps text-label-caps text-on-surface-variant mt-sm">ออกทั้งปี (This Year)</p>
+<p class="font-display text-display text-on-surface" id="stat-year">0</p>
+</div>
+<div class="tonal-layer-1 p-lg rounded-xl border border-outline-variant hover:border-primary transition-colors flex flex-col gap-base">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-on-tertiary-fixed-variant p-xs bg-tertiary-fixed rounded-lg">pending_actions</span>
+</div>
+<p class="font-label-caps text-label-caps text-on-surface-variant mt-sm">รออนุมัติ (Pending)</p>
+<p class="font-display text-display text-on-surface" id="stat-pending">0</p>
+</div>
+<div class="tonal-layer-1 p-lg rounded-xl border border-outline-variant hover:border-primary transition-colors flex flex-col gap-base">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-secondary p-xs bg-secondary-fixed rounded-lg" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-secondary font-mono-data" id="stat-approved-rate">0% Rate</span>
+</div>
+<p class="font-label-caps text-label-caps text-on-surface-variant mt-sm">อนุมัติแล้ว (Approved)</p>
+<p class="font-display text-display text-on-surface" id="stat-approved">0</p>
+</div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-lg">
+<div class="tonal-layer-1 rounded-xl p-lg border border-outline-variant flex flex-col gap-md">
+<div class="flex justify-between items-center">
+<h4 class="font-headline-md text-headline-md text-on-surface">แยกตามภูมิภาค (By Region)</h4>
+</div>
+<div class="flex flex-col gap-sm" id="region-breakdown"></div>
+</div>
+<div class="tonal-layer-1 rounded-xl p-lg border border-outline-variant flex flex-col gap-md">
+<div class="flex justify-between items-center">
+<h4 class="font-headline-md text-headline-md text-on-surface">แนวโน้มการเติบโต (Growth Trends, 6 เดือนล่าสุด)</h4>
+<span class="material-symbols-outlined text-outline" title="Number of quotations issued per month">info</span>
+</div>
+<div class="h-48 w-full bg-surface-container-low rounded-lg relative overflow-hidden flex items-end justify-between px-md py-sm gap-xs" id="growth-chart"></div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-4 pt-2 bg-surface border-t border-outline-variant shadow-lg rounded-t-xl">
+<a href="#dashboard" class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-lg py-xs active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="font-label-caps text-label-caps">Home</span>
+</a>
+<a href="#quotation-new" class="flex flex-col items-center justify-center text-on-surface-variant px-lg py-xs hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined">request_quote</span>
+<span class="font-label-caps text-label-caps">QT</span>
+</a>
+<a href="#po-list" class="flex flex-col items-center justify-center text-on-surface-variant px-lg py-xs hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="font-label-caps text-label-caps">PO</span>
+</a>
+<a href="#quotation-history" class="flex flex-col items-center justify-center text-on-surface-variant px-lg py-xs hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined">history</span>
+<span class="font-label-caps text-label-caps">History</span>
+</a>
+</nav>
+</section>
+
+<section id="page-quotation-new" class="qms-page hidden bg-surface-container-low text-on-surface">
+<!-- TopAppBar Navigation Shell -->
+<header class="fixed top-0 w-full z-50 bg-surface shadow-sm">
+<div class="flex items-center justify-between px-md py-sm max-w-container-max mx-auto h-16">
+<a href="#dashboard" class="flex items-center gap-sm"><span class="material-symbols-outlined text-primary">request_quote</span><span class="font-headline-md text-headline-md font-bold text-primary">QuoteExpert</span></a>
+<div class="flex items-center gap-md md:gap-xl">
+<nav class="hidden md:flex gap-lg">
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors" href="#dashboard">Dashboard</a>
+<a class="font-label-caps text-label-caps text-primary border-b-2 border-primary pb-1" href="#quotation-new">Create</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors" href="#quotation-history">History</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors" href="#po-list">PO</a>
+</nav>
+<button class="text-on-surface-variant hover:text-primary transition-colors flex items-center" data-logout title="Log out"><span class="material-symbols-outlined">logout</span></button>
+<div class="h-10 w-10 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-body-sm border border-outline-variant" data-user-initials>JD</div>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-24 pb-32 px-margin-mobile md:px-0">
+<div class="max-w-container-max mx-auto">
+<div class="mb-lg flex flex-col md:flex-row md:items-end justify-between gap-md">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface">New Quotation</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Generate a professional cost estimate for your client.</p>
+</div>
+<div class="flex gap-sm">
+<button id="btn-save-draft" class="px-md py-sm rounded-lg border border-primary text-primary font-label-caps text-label-caps hover:bg-primary-fixed transition-colors active:scale-95 duration-150">Save Draft</button>
+<button id="btn-finalize" class="px-md py-sm rounded-lg bg-primary text-on-primary font-label-caps text-label-caps hover:bg-primary-container transition-colors active:scale-95 duration-150 shadow-md">Finalize &amp; Send</button>
+</div>
+</div>
+
+<div class="grid grid-cols-12 gap-lg">
+<section class="col-span-12 lg:col-span-4 flex flex-col gap-lg">
+<div class="bg-surface-container-lowest quotation-card rounded-xl p-lg border border-outline-variant/30">
+<div class="flex items-center gap-sm mb-lg">
+<span class="material-symbols-outlined text-primary">person</span>
+<h2 class="font-label-caps text-label-caps uppercase text-on-surface-variant">Client Details</h2>
+</div>
+<div class="flex flex-col gap-md">
+<div class="flex flex-col gap-base">
+<label class="font-label-caps text-label-caps text-on-surface-variant ml-1">Customer Name (ชื่อลูกค้า)*</label>
+<input id="f-customer" class="w-full bg-white border border-outline-variant rounded-lg px-md py-sm font-body-lg text-body-lg focus:border-primary transition-all" placeholder="e.g. Acme Corp Industries" required type="text">
+</div>
+<div class="flex flex-col gap-base">
+<label class="font-label-caps text-label-caps text-on-surface-variant ml-1">Contact Person (ชื่อผู้ติดต่อ)</label>
+<input id="f-contact" class="w-full bg-white border border-outline-variant rounded-lg px-md py-sm font-body-lg text-body-lg focus:border-primary transition-all" placeholder="John Doe" type="text">
+</div>
+<div class="flex flex-col gap-base">
+<label class="font-label-caps text-label-caps text-on-surface-variant ml-1">Billing Address (ที่อยู่)*</label>
+<textarea id="f-address" class="w-full bg-white border border-outline-variant rounded-lg px-md py-sm font-body-lg text-body-lg focus:border-primary transition-all resize-none" placeholder="Street, City, State, ZIP Code" required rows="3"></textarea>
+</div>
+<div class="grid grid-cols-2 gap-md">
+<div class="flex flex-col gap-base">
+<label class="font-label-caps text-label-caps text-on-surface-variant ml-1">Phone</label>
+<input id="f-phone" class="w-full bg-white border border-outline-variant rounded-lg px-md py-sm font-body-lg text-body-lg focus:border-primary transition-all" placeholder="02-123-4567" type="tel">
+</div>
+<div class="flex flex-col gap-base">
+<label class="font-label-caps text-label-caps text-on-surface-variant ml-1">Email</label>
+<input id="f-email" class="w-full bg-white border border-outline-variant rounded-lg px-md py-sm font-body-lg text-body-lg focus:border-primary transition-all" placeholder="client@company.com" type="email">
+</div>
+</div>
+<div class="flex flex-col gap-base">
+<label class="font-label-caps text-label-caps text-on-surface-variant ml-1">Region (ภูมิภาค)</label>
+<select id="f-region" class="w-full bg-white border border-outline-variant rounded-lg px-md py-sm font-body-lg text-body-lg focus:border-primary transition-all"></select>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest quotation-card rounded-xl p-lg border border-outline-variant/30">
+<div class="flex items-center gap-sm mb-lg">
+<span class="material-symbols-outlined text-primary">badge</span>
+<h2 class="font-label-caps text-label-caps uppercase text-on-surface-variant">Order &amp; Terms</h2>
+</div>
+<div class="flex flex-col gap-md">
+<div class="flex flex-col gap-base">
+<label class="font-label-caps text-label-caps text-on-surface-variant ml-1">Salesperson (พนักงานขาย)*</label>
+<input id="f-salesperson" class="w-full bg-white border border-outline-variant rounded-lg px-md py-sm font-body-lg text-body-lg focus:border-primary transition-all" placeholder="Enter salesperson name" required type="text">
+</div>
+<div class="grid grid-cols-2 gap-md">
+<div class="flex flex-col gap-base">
+<label class="font-label-caps text-label-caps text-on-surface-variant ml-1">Quotation Date</label>
+<input class="w-full bg-white border border-outline-variant rounded-lg px-md py-sm font-body-lg text-body-lg focus:border-primary transition-all" id="quote-date" onchange="QN.updateDeadline()" type="date">
+</div>
+<div class="flex flex-col gap-base">
+<label class="font-label-caps text-label-caps text-on-surface-variant ml-1">Deadline</label>
+<input class="w-full bg-surface-container-low border border-outline-variant/50 rounded-lg px-md py-sm font-body-lg text-body-lg" id="quote-deadline" readonly type="date">
+</div>
+</div>
+<div class="flex flex-col gap-base">
+<label class="font-label-caps text-label-caps text-on-surface-variant ml-1">Payment Terms (เงื่อนไขการชำระเงิน)</label>
+<div class="flex gap-sm">
+<select class="w-2/3 bg-white border border-outline-variant rounded-lg px-md py-sm font-body-lg text-body-lg focus:border-primary transition-all" id="payment-terms-select" onchange="QN.handlePaymentTermsChange(this.value)">
+<option value="30">30 Days</option>
+<option value="60">60 Days</option>
+<option value="90">90 Days</option>
+<option value="custom">Custom</option>
+</select>
+<div class="hidden w-1/3 flex items-center gap-xs" id="custom-days-container">
+<input class="w-full bg-white border border-outline-variant rounded-lg px-md py-sm font-body-lg text-body-lg" id="custom-days" placeholder="Days" type="number" value="30">
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="col-span-12 lg:col-span-8 flex flex-col gap-lg">
+<div class="bg-surface-container-lowest quotation-card rounded-xl border border-outline-variant/30 flex flex-col overflow-hidden">
+<div class="flex items-center justify-between px-lg py-md border-b border-outline-variant/20 bg-surface-container-low/30">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary">list_alt</span>
+<h2 class="font-label-caps text-label-caps uppercase text-on-surface-variant">Line Items</h2>
+</div>
+<button class="flex items-center gap-xs font-label-caps text-label-caps text-primary hover:text-primary-container transition-colors" onclick="QN.addItem()">
+<span class="material-symbols-outlined text-[18px]">add</span> Add Item
+</button>
+</div>
+<div class="table-scroll overflow-x-auto w-full">
+<table class="w-full text-left border-collapse" id="quoteTable">
+<thead>
+<tr class="bg-surface-container-low/50">
+<th class="px-lg py-sm font-label-caps text-label-caps text-on-surface-variant whitespace-nowrap w-32">รหัสสินค้า*</th>
+<th class="px-lg py-sm font-label-caps text-label-caps text-on-surface-variant whitespace-nowrap">รายการ*</th>
+<th class="px-lg py-sm font-label-caps text-label-caps text-on-surface-variant whitespace-nowrap w-24">จำนวน*</th>
+<th class="px-lg py-sm font-label-caps text-label-caps text-on-surface-variant whitespace-nowrap w-16">หน่วย</th>
+<th class="px-lg py-sm font-label-caps text-label-caps text-on-surface-variant whitespace-nowrap w-32 text-right">ราคา/หน่วย*</th>
+<th class="px-lg py-sm font-label-caps text-label-caps text-on-surface-variant whitespace-nowrap text-right w-32">รวมเงิน</th>
+<th class="px-md py-sm w-12"></th>
+</tr>
+</thead>
+<tbody id="item-rows">
+<tr class="group border-b border-outline-variant/10">
+<td class="px-lg py-md"><input class="w-full bg-transparent border-none p-0 font-body-lg text-body-lg focus:ring-0 sku" placeholder="SKU-001" required type="text" value="MAT-P-01"></td>
+<td class="px-lg py-md"><input class="w-full bg-transparent border-none p-0 font-body-lg text-body-lg focus:ring-0 desc" required type="text" value="Steel Pipe Section A"></td>
+<td class="px-lg py-md"><input class="qty w-full bg-transparent border-none p-0 font-body-lg text-body-lg focus:ring-0 text-center" min="1" oninput="QN.calculateTotal()" required type="number" value="10"></td>
+<td class="px-lg py-md"><input class="unit w-full bg-transparent border-none p-0 font-body-lg text-body-lg focus:ring-0 text-on-surface-variant" type="text" value="เส้น"></td>
+<td class="px-lg py-md"><input class="price w-full bg-transparent border-none p-0 font-body-lg text-body-lg focus:ring-0 text-right" min="0" oninput="QN.calculateTotal()" required step="0.01" type="number" value="450.00"></td>
+<td class="px-lg py-md text-right font-mono-data text-mono-data text-on-surface">฿<span class="row-total">4,500.00</span></td>
+<td class="px-md py-md text-center"><button type="button" class="opacity-0 group-hover:opacity-100 text-error hover:scale-110 transition-all" onclick="QN.deleteRow(this)"><span class="material-symbols-outlined text-[20px]">delete</span></button></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="mt-auto p-lg bg-surface-container-low/20 border-t border-outline-variant/30 flex justify-end">
+<div class="w-full md:w-80 flex flex-col gap-sm">
+<div class="flex justify-between items-center">
+<span class="font-body-sm text-body-sm text-on-surface-variant">ราคาก่อนภาษี (Total Before VAT)</span>
+<span class="font-mono-data text-mono-data text-on-surface">฿<span id="total-before-vat">4,205.61</span></span>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-body-sm text-body-sm text-on-surface-variant">ภาษีมูลค่าเพิ่ม (VAT 7%)</span>
+<span class="font-mono-data text-mono-data text-on-surface">฿<span id="vat-amount">294.39</span></span>
+</div>
+<div class="h-px bg-outline-variant/30 my-base"></div>
+<div class="flex justify-between items-center">
+<span class="font-headline-md text-headline-md font-bold text-on-surface">ยอดรวมสุทธิ (Grand Total)</span>
+<span class="font-headline-md text-headline-md font-bold text-primary">฿<span id="grand-total">4,500.00</span></span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</div>
+</main>
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-4 pt-2 bg-surface border-t border-outline-variant shadow-lg rounded-t-xl">
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-lg py-xs hover:bg-surface-container-high transition-transform active:scale-90 duration-200" href="#dashboard"><span class="material-symbols-outlined">home</span><span class="font-label-caps text-label-caps">Home</span></a>
+<a class="flex flex-col items-center justify-center bg-primary text-on-primary px-lg py-xs rounded-xl transition-transform active:scale-90 duration-200" href="#quotation-new"><span class="material-symbols-outlined">request_quote</span><span class="font-label-caps text-label-caps">QT</span></a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-lg py-xs hover:bg-surface-container-high transition-transform active:scale-90 duration-200" href="#po-list"><span class="material-symbols-outlined">shopping_cart</span><span class="font-label-caps text-label-caps">PO</span></a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-lg py-xs hover:bg-surface-container-high transition-transform active:scale-90 duration-200" href="#quotation-history"><span class="material-symbols-outlined">history</span><span class="font-label-caps text-label-caps">History</span></a>
+</nav>
+</section>
+
+<section id="page-quotation-preview" class="qms-page hidden p-2 md:p-8">
+<div class="no-print max-w-4xl mx-auto mb-4 flex items-center justify-between">
+<a href="#dashboard" class="text-blue-900 font-bold flex items-center gap-1 hover:underline">
+<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg>
+Back to Dashboard
+</a>
+<span id="status-pill" class="status-pill bg-gray-200 text-gray-700">Draft</span>
+</div>
+<main class="max-w-4xl mx-auto bg-white shadow-lg p-4 md:p-10 border border-gray-200" id="doc-root">
+<header class="flex flex-col md:flex-row justify-between items-start border-b-2 border-blue-900 pb-4 mb-6" data-purpose="company-identity">
+<div class="mb-4 md:mb-0">
+<h1 class="text-2xl md:text-3xl font-bold text-blue-900 leading-tight">Ranyang Dee Tire Limited Partnership</h1>
+</div>
+<div class="text-right text-[10px] md:text-xs text-gray-700 max-w-xs">
+<p>239 Thaiban Road, Pak Nam Subdistrict, Mueang Samut Prakan District</p>
+<p>Samut Prakan Province, 10270, Thailand</p>
+</div>
+</header>
+<section class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6" data-purpose="document-header-info">
+<div class="dashed-box p-3 text-sm">
+<div class="grid grid-cols-[80px_1fr] gap-x-2 gap-y-1">
+<span class="font-bold">Customer:</span><span id="doc-customer">-</span>
+<span class="font-bold">Contact Person:</span><span id="doc-contact">-</span>
+<span class="font-bold text-xs">Address:</span><span class="text-xs" id="doc-address">-</span>
+<span class="font-bold">Phone:</span><span id="doc-phone">-</span>
+<span class="font-bold">Email:</span><span id="doc-email">-</span>
+</div>
+</div>
+<div class="border border-black text-sm">
+<div class="grid grid-cols-2 text-center border-b border-black">
+<div class="p-1 border-r border-black font-bold">ต้นฉบับ / Original</div>
+<div class="p-1 font-bold" id="doc-number">-</div>
+</div>
+<div class="grid grid-cols-2 border-b border-black">
+<div class="p-1 border-r border-black font-bold text-right pr-2">Date:</div>
+<div class="p-1 pl-2" id="doc-date">-</div>
+</div>
+<div class="grid grid-cols-2 border-b border-black">
+<div class="p-1 border-r border-black text-right pr-2"><span class="block font-bold">พนักงานขาย :</span><span class="text-[10px] block leading-none">Salesperson</span></div>
+<div class="p-1 pl-2 flex items-center" id="doc-salesperson">-</div>
+</div>
+<div class="grid grid-cols-2 border-b border-black">
+<div class="p-1 border-r border-black text-right pr-2"><span class="block font-bold">กำหนดยืนราคา :</span><span class="text-[10px] block leading-none">Quote Deadline</span></div>
+<div class="p-1 pl-2 flex items-center" id="doc-deadline">-</div>
+</div>
+<div class="grid grid-cols-2">
+<div class="p-1 border-r border-black text-right pr-2"><span class="block font-bold">การชำระเงิน :</span><span class="text-[10px] block leading-none">Payment Terms</span></div>
+<div class="p-1 pl-2 flex items-center" id="doc-terms">-</div>
+</div>
+</div>
+</section>
+<section class="overflow-x-auto mb-6" data-purpose="order-table">
+<table class="w-full border-collapse form-table text-xs md:text-sm">
+<thead class="bg-gray-50">
+<tr class="text-center">
+<th class="w-20"><p class="font-bold">รหัสสินค้า</p><p class="text-[10px]">Item Number</p></th>
+<th><p class="font-bold">รายการ</p><p class="text-[10px]">Description</p></th>
+<th class="w-16"><p class="font-bold">จำนวน</p><p class="text-[10px]">Quantity</p></th>
+<th class="w-16"><p class="font-bold">หน่วย</p><p class="text-[10px]">U/M</p></th>
+<th class="w-24"><p class="font-bold">ราคาต่อหน่วย</p><p class="text-[10px]">Unit Price (THB)</p></th>
+<th class="w-24"><p class="font-bold">จำนวนเงิน</p><p class="text-[10px]">Amount (THB)</p></th>
+</tr>
+</thead>
+<tbody id="doc-items"></tbody>
+<tfoot class="border-t-2 border-black">
+<tr>
+<td class="align-top p-2 text-xs" colspan="4" rowspan="3">
+<div class="font-bold mb-1">หมายเหตุ : ราคานี้เป็นราคาประเมินเบื้องต้น</div>
+<div class="text-center mt-2" id="doc-note">กำหนดส่งของ : ภายใน 7 วัน หลังยืนยันคำสั่งซื้อ</div>
+</td>
+<td class="text-right font-bold text-[10px]">TOTAL</td>
+<td class="text-right" id="doc-subtotal">0.00</td>
+</tr>
+<tr>
+<td class="text-right font-bold text-[10px]">VAT 7%</td>
+<td class="text-right" id="doc-vat">0.00</td>
+</tr>
+<tr class="bg-gray-100">
+<td class="text-right font-bold text-[10px]">GRAND TOTAL</td>
+<td class="text-right font-bold" id="doc-total">0.00</td>
+</tr>
+</tfoot>
+</table>
+</section>
+<section class="text-[10px] md:text-xs mb-8" data-purpose="terms">
+<p class="mb-4">กรุณาตรวจสอบรายการ ราคา พร้อมเซ็นชื่อตอบรับใบเสนอราคาและ E-mail กลับทันที</p>
+<p class="italic mb-6">Please review the items and prices, sign to acknowledge the quotation, and return by E-mail</p>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="dashed-box p-3 min-h-[100px]">
+<p class="font-bold mb-2">เงื่อนไขการรับประกัน :</p>
+<p>สินค้ารับประกันคุณภาพจากการผลิต ยกเว้นความเสียหายจากการใช้งานผิดวิธี</p>
+</div>
+<div class="flex border border-black h-[100px]">
+<div class="flex-1 border-r border-black flex flex-col justify-end text-center p-1">
+<div class="border-t border-dotted border-black mx-2 mb-1"></div><p class="font-bold">ผู้อนุมัติ</p><p class="text-[9px]">วันที่...../...../.....</p>
+</div>
+<div class="flex-1 border-r border-black flex flex-col justify-end text-center p-1">
+<div class="border-t border-dotted border-black mx-2 mb-1"></div><p class="font-bold">พนักงานขาย</p><p class="text-[9px]">วันที่...../...../.....</p>
+</div>
+<div class="flex-1 flex flex-col justify-end text-center p-1">
+<div class="border-t border-dotted border-black mx-2 mb-1"></div><p class="font-bold">ผู้สั่งซื้อ</p><p class="text-[9px]">วันที่...../...../.....</p>
+</div>
+</div>
+</div>
+</section>
+<section class="no-print flex flex-col sm:flex-row justify-center flex-wrap gap-4 mt-10 pt-6 border-t border-gray-100" data-purpose="user-actions">
+<button class="bg-blue-800 hover:bg-blue-900 text-white font-bold py-3 px-8 rounded-lg shadow-md transition flex items-center justify-center gap-2" onclick="window.print()">
+<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg>
+Print / Export PDF
+</button>
+<button id="btn-approve" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg shadow-md transition flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">check_circle</span> Mark as Approved
+</button>
+<button id="btn-edit" class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-3 px-8 rounded-lg shadow-md transition flex items-center justify-center gap-2">
+Duplicate as New
+</button>
+<button id="btn-delete" class="bg-white border border-red-300 hover:bg-red-50 text-red-600 font-bold py-3 px-8 rounded-lg shadow-md transition flex items-center justify-center gap-2">
+Delete
+</button>
+</section>
+</main>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+</section>
+
+<section id="page-quotation-history" class="qms-page hidden bg-surface-container-low text-on-surface min-h-screen pb-24 md:pb-0 md:pl-[280px]">
+<aside class="fixed left-0 top-0 h-full w-[280px] bg-surface-container-lowest shadow-sm hidden md:flex flex-col border-r border-outline-variant z-50">
+<div class="px-lg py-xl"><h1 class="text-headline-lg font-headline-lg text-primary">QuotePro</h1></div>
+<nav class="flex-1 px-sm">
+<a class="flex items-center gap-md px-lg py-md text-on-surface-variant hover:text-on-surface transition-colors hover:bg-surface-container-low font-body-lg text-body-lg" href="#dashboard"><span class="material-symbols-outlined">dashboard</span>Home</a>
+<a class="flex items-center gap-md px-lg py-md text-on-surface-variant hover:text-on-surface transition-colors hover:bg-surface-container-low font-body-lg text-body-lg" href="#quotation-new"><span class="material-symbols-outlined">add_circle</span>Create</a>
+<a class="flex items-center gap-md px-lg py-md text-primary font-bold border-r-4 border-primary bg-surface-container-low font-body-lg text-body-lg" href="#quotation-history"><span class="material-symbols-outlined">history</span>History</a>
+<a class="flex items-center gap-md px-lg py-md text-on-surface-variant hover:text-on-surface transition-colors hover:bg-surface-container-low font-body-lg text-body-lg" href="#po-list"><span class="material-symbols-outlined">shopping_cart</span>PO</a>
+</nav>
+<div class="p-lg border-t border-outline-variant">
+<a href="#" data-logout class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold" data-user-initials>JD</div>
+<div><p class="font-bold text-body-sm" data-user-name>John Doe</p><p class="text-body-sm text-on-surface-variant">Sign out</p></div>
+</a>
+</div>
+</aside>
+<header class="flex justify-between items-center px-lg py-md w-full sticky top-0 z-50 bg-surface border-b border-outline-variant md:hidden">
+<div class="flex items-center gap-md"><h2 class="font-headline-md text-headline-md text-primary">ประวัติใบเสนอราคา</h2></div>
+<a href="#" data-logout><span class="material-symbols-outlined text-on-surface-variant">logout</span></a>
+</header>
+<main class="max-w-[1280px] mx-auto p-md md:p-xl">
+<div class="mb-lg flex flex-col sm:flex-row gap-sm items-stretch">
+<button id="qh-btn-export-csv" class="flex-1 flex items-center justify-center gap-sm px-lg py-2.5 bg-secondary text-on-secondary rounded-lg font-bold hover:opacity-90 transition-all active:scale-95 text-body-sm shadow-sm">
+<span class="material-symbols-outlined text-[20px]">table_view</span><span>Export report to Excel (CSV)</span>
+</button>
+<button id="qh-btn-export-pdf" class="flex-1 flex items-center justify-center gap-sm px-lg py-2.5 bg-primary text-on-primary rounded-lg font-bold hover:opacity-90 transition-all active:scale-95 text-body-sm shadow-sm">
+<span class="material-symbols-outlined text-[20px]">picture_as_pdf</span><span>Print / Export PDF (Selected)</span>
+</button>
+</div>
+<div class="mb-xl flex flex-col md:flex-row gap-md justify-between items-start md:items-center">
+<div class="relative w-full md:w-96">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input id="qh-search-input" class="w-full pl-10 pr-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container focus:border-primary-container outline-none text-body-lg" placeholder="ค้นหาเลขที่ หรือชื่อลูกค้า..." type="text">
+</div>
+<select id="qh-status-filter" class="px-lg py-2 bg-surface-container-highest text-on-surface-variant border border-outline-variant rounded-lg font-bold">
+<option value="">ทุกสถานะ (All Status)</option>
+<option value="draft">Draft</option>
+<option value="pending">Pending</option>
+<option value="approved">Approved</option>
+<option value="paid">Paid</option>
+</select>
+</div>
+<div class="space-y-xl" id="history-groups"></div>
+<p class="hidden text-center text-on-surface-variant font-body-sm text-body-sm py-xl" id="history-empty">ไม่พบใบเสนอราคาที่ตรงกับเงื่อนไข</p>
+</main>
+<button onclick="navigate('quotation-new')" class="fixed bottom-24 right-6 w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-transform md:hidden z-50">
+<span class="material-symbols-outlined text-[32px]">add</span>
+</button>
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-md pb-6 pt-2 bg-surface-container-lowest shadow-lg md:hidden rounded-t-xl">
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-lg py-sm font-label-caps text-label-caps" href="#dashboard"><span class="material-symbols-outlined">home</span>Home</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-lg py-sm font-label-caps text-label-caps" href="#quotation-new"><span class="material-symbols-outlined">description</span>QT</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-lg py-sm font-label-caps text-label-caps" href="#po-list"><span class="material-symbols-outlined">shopping_cart</span>PO</a>
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-lg py-sm font-label-caps text-label-caps" href="#quotation-history"><span class="material-symbols-outlined">history</span>History</a>
+</nav>
+</section>
+
+<section id="page-po-new" class="qms-page hidden bg-background text-on-background min-h-screen flex flex-col md:flex-row">
+<aside class="hidden md:flex flex-col h-full py-lg w-[280px] fixed left-0 top-0 bg-surface-container-lowest border-r border-outline-variant z-50">
+<div class="px-lg mb-xl"><a href="#dashboard" class="font-headline-md text-headline-md text-primary font-bold">TirePro ERP</a></div>
+<nav class="flex-1 space-y-1">
+<div class="px-md">
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-r-full group" href="#dashboard"><span class="material-symbols-outlined">dashboard</span><span class="font-body-lg text-body-lg">Dashboard</span></a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-r-full group" href="#quotation-history"><span class="material-symbols-outlined">request_quote</span><span class="font-body-lg text-body-lg">Quotations</span></a>
+<a class="flex items-center gap-md px-md py-sm text-primary font-bold bg-primary-fixed rounded-r-full group" href="#po-new"><span class="material-symbols-outlined">shopping_cart</span><span class="font-body-lg text-body-lg">Purchase Orders</span></a>
+</div>
+</nav>
+</aside>
+<main class="flex-1 md:ml-[280px] flex flex-col min-h-screen relative pb-32">
+<header class="flex justify-between items-center px-lg h-16 w-full sticky top-0 bg-surface border-b border-outline-variant z-40">
+<div class="flex items-center gap-md">
+<a href="#po-list" class="w-10 h-10 flex items-center justify-center hover:bg-surface-container-high rounded-full transition-all cursor-pointer"><span class="material-symbols-outlined text-primary">arrow_back</span></a>
+<h1 class="font-headline-md text-headline-md text-primary font-bold">สร้างใบสั่งซื้อ (Create PO)</h1>
+</div>
+<button data-logout class="w-8 h-8 rounded-full bg-primary-fixed-dim flex items-center justify-center overflow-hidden" title="Log out"><span class="material-symbols-outlined text-primary text-[18px]">logout</span></button>
+</header>
+<div class="flex-1 p-md lg:p-xl max-w-container-max mx-auto w-full">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-lg">
+<section class="md:col-span-12 lg:col-span-4 space-y-lg">
+<div class="bg-surface-container-lowest p-lg rounded-xl shadow-soft border border-outline-variant">
+<h2 class="font-label-caps text-label-caps text-on-surface-variant uppercase mb-md tracking-widest">ข้อมูลใบสั่งซื้อ (PO Information)</h2>
+<div class="space-y-md">
+<div>
+<label class="font-label-caps text-label-caps text-on-surface-variant block mb-xs">เลขที่ใบสั่งซื้อ (PO Number)</label>
+<div class="flex items-center justify-between p-sm px-md bg-surface-container-low rounded border border-outline-variant">
+<span class="font-mono-data text-mono-data text-on-surface" id="po-number-preview">-</span>
+<span class="bg-primary text-on-primary text-[10px] px-sm py-[2px] rounded-full font-bold">GENERATED</span>
+</div>
+</div>
+<div>
+<label class="font-label-caps text-label-caps text-on-surface-variant block mb-xs">วัน/เดือน/ปี สั่งซื้อ (Purchase Date)</label>
+<input id="f-date" class="w-full font-body-lg text-body-lg p-sm border border-outline-variant rounded focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" type="date">
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-lg rounded-xl shadow-soft border border-outline-variant">
+<h2 class="font-label-caps text-label-caps text-on-surface-variant uppercase mb-md tracking-widest">รายละเอียดผู้ขาย (Vendor Details)</h2>
+<div>
+<label class="font-label-caps text-label-caps text-on-surface-variant block mb-xs">ชื่อบริษัท (Company Name)*</label>
+<div class="relative">
+<input id="f-vendor" class="w-full font-body-lg text-body-lg p-sm pl-10 border border-outline-variant rounded focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" placeholder="ระบุชื่อบริษัทผู้ขาย..." required type="text">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-body-lg">store</span>
+</div>
+</div>
+</div>
+</section>
+<section class="md:col-span-12 lg:col-span-8 space-y-lg">
+<div class="bg-surface-container-lowest p-lg rounded-xl shadow-soft border border-outline-variant">
+<div class="flex justify-between items-center mb-md">
+<h2 class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">รายการสินค้า (Line Items)</h2>
+<button type="button" class="flex items-center gap-xs text-primary font-bold text-body-sm hover:underline" onclick="PN.addItem()"><span class="material-symbols-outlined text-[18px]">add_circle</span> เพิ่มรายการ</button>
+</div>
+<div class="space-y-md" id="line-items-container"></div>
+</div>
+<section class="md:col-span-12 lg:col-span-12">
+<div class="bg-tertiary-container text-on-tertiary-container p-lg rounded-xl shadow-soft flex flex-col md:flex-row justify-between items-center gap-lg">
+<div class="flex flex-col gap-sm w-full md:w-auto">
+<div class="flex justify-between md:justify-start md:gap-3xl">
+<span class="font-label-caps text-label-caps">ราคาก่อนภาษี (Total Before VAT)</span>
+<span class="font-mono-data text-mono-data text-on-tertiary" id="po-subtotal">0.00 THB</span>
+</div>
+<div class="flex justify-between md:justify-start md:gap-3xl">
+<span class="font-label-caps text-label-caps">ภาษี (VAT 7%)</span>
+<span class="font-mono-data text-mono-data text-on-tertiary" id="po-vat">0.00 THB</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest/10 h-px w-full md:h-12 md:w-px"></div>
+<div class="flex flex-col items-end w-full md:w-auto">
+<span class="font-label-caps text-label-caps text-on-tertiary/70">ยอดรวมสุทธิ (Grand Total)</span>
+<span class="text-[32px] font-bold text-white tracking-tight" id="po-total">฿ 0.00</span>
+</div>
+</div>
+</section>
+</section>
+</div>
+</div>
+<footer class="fixed bottom-0 left-0 md:left-[280px] right-0 bg-surface border-t border-outline-variant p-md flex flex-col sm:flex-row gap-md justify-end items-center z-50">
+<button type="button" onclick="window.print()" class="w-full sm:w-auto px-xl py-md border border-primary text-primary font-bold rounded flex items-center justify-center gap-sm hover:bg-primary-fixed transition-colors active:scale-95"><span class="material-symbols-outlined">picture_as_pdf</span> Print/Export PDF</button>
+<button type="button" id="btn-save-po" class="w-full sm:w-auto px-3xl py-md bg-secondary text-on-secondary font-bold rounded flex items-center justify-center gap-sm hover:opacity-90 shadow-soft active:scale-95 transition-all"><span class="material-symbols-outlined">save</span> บันทึกใบสั่งซื้อ (Save PO)</button>
+</footer>
+</main>
+</section>
+
+<section id="page-po-list" class="qms-page hidden bg-surface-container-low text-on-surface min-h-screen pb-24 md:pb-0 md:pl-[280px]">
+<aside class="fixed left-0 top-0 h-full w-[280px] bg-surface-container-lowest shadow-sm hidden md:flex flex-col border-r border-outline-variant z-50">
+<div class="px-lg py-xl"><h1 class="text-headline-lg font-headline-lg text-primary">QuotePro</h1></div>
+<nav class="flex-1 px-sm">
+<a class="flex items-center gap-md px-lg py-md text-on-surface-variant hover:text-on-surface transition-colors hover:bg-surface-container-low font-body-lg text-body-lg" href="#dashboard"><span class="material-symbols-outlined">dashboard</span>Home</a>
+<a class="flex items-center gap-md px-lg py-md text-on-surface-variant hover:text-on-surface transition-colors hover:bg-surface-container-low font-body-lg text-body-lg" href="#quotation-new"><span class="material-symbols-outlined">add_circle</span>Create</a>
+<a class="flex items-center gap-md px-lg py-md text-primary font-bold border-r-4 border-primary bg-surface-container-low font-body-lg text-body-lg" href="#po-list"><span class="material-symbols-outlined">shopping_cart</span>PO</a>
+<a class="flex items-center gap-md px-lg py-md text-on-surface-variant hover:text-on-surface transition-colors hover:bg-surface-container-low font-body-lg text-body-lg" href="#quotation-history"><span class="material-symbols-outlined">history</span>History</a>
+</nav>
+<div class="p-lg border-t border-outline-variant">
+<a href="#" data-logout class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold" data-user-initials>JD</div>
+<div><p class="font-bold text-body-sm" data-user-name>John Doe</p><p class="text-body-sm text-on-surface-variant">Sign out</p></div>
+</a>
+</div>
+</aside>
+<header class="flex justify-between items-center px-lg py-md w-full sticky top-0 z-50 bg-surface border-b border-outline-variant md:hidden">
+<div class="flex items-center gap-md"><h2 class="font-headline-md text-headline-md text-primary">รายการใบสั่งซื้อ</h2></div>
+<a href="#" data-logout><span class="material-symbols-outlined text-on-surface-variant">logout</span></a>
+</header>
+<main class="max-w-[1280px] mx-auto p-md md:p-xl">
+<div class="mb-lg flex flex-col sm:flex-row gap-sm items-stretch">
+<a href="#po-new" class="flex-1 flex items-center justify-center gap-sm px-lg py-2.5 bg-primary text-on-primary rounded-lg font-bold hover:opacity-90 transition-all active:scale-95 text-body-sm shadow-sm">
+<span class="material-symbols-outlined text-[20px]">add</span><span>สร้างใบสั่งซื้อใหม่ (New PO)</span>
+</a>
+<button id="pl-btn-export-csv" class="flex-1 flex items-center justify-center gap-sm px-lg py-2.5 bg-secondary text-on-secondary rounded-lg font-bold hover:opacity-90 transition-all active:scale-95 text-body-sm shadow-sm">
+<span class="material-symbols-outlined text-[20px]">table_view</span><span>Export report to Excel (CSV)</span>
+</button>
+</div>
+<div class="mb-xl flex flex-col md:flex-row gap-md justify-between items-start md:items-center">
+<div class="relative w-full md:w-96">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input id="pl-search-input" class="w-full pl-10 pr-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container focus:border-primary-container outline-none text-body-lg" placeholder="ค้นหาใบสั่งซื้อ หรือชื่อผู้ขาย..." type="text">
+</div>
+<select id="pl-status-filter" class="px-lg py-2 bg-surface-container-highest text-on-surface-variant border border-outline-variant rounded-lg font-bold">
+<option value="">ทุกสถานะ (All Status)</option>
+<option value="pending">Pending</option>
+<option value="overdue">Overdue</option>
+<option value="paid">Paid</option>
+</select>
+</div>
+<div class="space-y-xl" id="po-groups"></div>
+<p class="hidden text-center text-on-surface-variant font-body-sm text-body-sm py-xl" id="po-empty">ไม่พบใบสั่งซื้อที่ตรงกับเงื่อนไข</p>
+</main>
+<a href="#po-new" class="fixed bottom-24 right-6 w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-transform md:hidden z-50">
+<span class="material-symbols-outlined text-[32px]">add</span>
+</a>
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-md pb-6 pt-2 bg-surface-container-lowest shadow-lg md:hidden rounded-t-xl">
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-lg py-sm font-label-caps text-label-caps" href="#dashboard"><span class="material-symbols-outlined">home</span>Home</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-lg py-sm font-label-caps text-label-caps" href="#quotation-new"><span class="material-symbols-outlined">description</span>QT</a>
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-lg py-sm font-label-caps text-label-caps" href="#po-list"><span class="material-symbols-outlined">shopping_cart</span>PO</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-lg py-sm font-label-caps text-label-caps" href="#quotation-history"><span class="material-symbols-outlined">history</span>History</a>
+</nav>
+</section>
+
+<script>
+/**
+ * QMS Store — Supabase-backed data layer for QuoteExpert.
+ * Requires the Supabase JS SDK (loaded via CDN above) and the SUPABASE_URL /
+ * SUPABASE_ANON_KEY constants configured below. Data (quotations, purchase
+ * orders) is shared across every signed-in user of this Supabase project;
+ * auth/accounts are handled by Supabase Auth (email + password).
+ *
+ * Run the SQL in supabase-schema.sql (provided alongside this file) in your
+ * Supabase project's SQL Editor before using the app.
+ */
+
+// ====== CONFIGURE THESE with your Supabase project's values ======
+const SUPABASE_URL = "https://inbuguswodjlseomlill.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImluYnVndXN3b2RqbHNlb21saWxsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYxMjU1MDcsImV4cCI6MjEwMTcwMTUwN30.9KyJR4CNhgd_TDSko2NH3rK0HZFH0wfyZ-N5-2ZUnWM";
+// ===================================================================
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const QMS = (function () {
+  const REGIONS = ["ภาคกลาง", "ภาคเหนือ", "ภาคตะวันออก", "ภาคใต้", "อื่นๆ"];
+
+  function pad4(n) {
+    return String(n).padStart(4, "0");
+  }
+
+  function calcTotals(items) {
+    // The sum of line items IS the grand total (VAT-inclusive).
+    // The pre-VAT amount and VAT are derived by extracting 7% out of that total.
+    const total = (items || []).reduce((sum, it) => sum + (Number(it.qty) || 0) * (Number(it.price) || 0), 0);
+    const vat = (total * 7) / 107;
+    const subtotal = total - vat;
+    return { subtotal, vat, total };
+  }
+
+  function formatCurrency(n) {
+    const num = Number(n) || 0;
+    return num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function formatCompact(n) {
+    const num = Number(n) || 0;
+    if (Math.abs(num) >= 1000000) return (num / 1000000).toFixed(1) + "M";
+    if (Math.abs(num) >= 1000) return (num / 1000).toFixed(1) + "K";
+    return num.toFixed(0);
+  }
+
+  // ---------- Auth (Supabase Auth) ----------
+  async function register(name, email, password) {
+    const { data, error } = await sb.auth.signUp({
+      email,
+      password,
+      options: { data: { name: name || email.split("@")[0] } },
+    });
+    if (error) throw error;
+    return data;
+  }
+
+  async function verifyLogin(email, password) {
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    return !error;
+  }
+
+  async function logout() {
+    await sb.auth.signOut();
+  }
+
+  async function getSession() {
+    const { data } = await sb.auth.getSession();
+    const session = data && data.session;
+    if (!session) return null;
+    const user = session.user;
+    return {
+      loggedIn: true,
+      name: (user.user_metadata && user.user_metadata.name) || user.email,
+      email: user.email,
+    };
+  }
+
+  async function isLoggedIn() {
+    const { data } = await sb.auth.getSession();
+    return !!(data && data.session);
+  }
+
+  // ---------- Mapping helpers ----------
+  function mapQuotation(row) {
+    return {
+      id: row.id,
+      number: row.number,
+      customer: row.customer,
+      contact: row.contact,
+      address: row.address,
+      phone: row.phone,
+      email: row.email,
+      region: row.region,
+      salesperson: row.salesperson,
+      date: row.date,
+      deadline: row.deadline,
+      paymentTerms: row.payment_terms,
+      customDays: row.custom_days,
+      items: row.items || [],
+      subtotal: Number(row.subtotal),
+      vat: Number(row.vat),
+      total: Number(row.total),
+      status: row.status,
+      createdAt: row.created_at,
+    };
+  }
+
+  function mapPO(row) {
+    return {
+      id: row.id,
+      number: row.number,
+      vendorName: row.vendor_name,
+      date: row.date,
+      items: row.items || [],
+      subtotal: Number(row.subtotal),
+      vat: Number(row.vat),
+      total: Number(row.total),
+      status: row.status,
+      createdAt: row.created_at,
+    };
+  }
+
+  async function nextNumberFor(table, prefix) {
+    const year = new Date().getFullYear();
+    const { data, error } = await sb.from(table).select("number").ilike("number", `${prefix}${year}-%`);
+    if (error) {
+      console.error(error);
+      return `${prefix}${year}-0001`;
+    }
+    const nums = (data || [])
+      .map((r) => parseInt(String(r.number).slice(-4), 10))
+      .filter((n) => !isNaN(n));
+    const next = (nums.length ? Math.max(...nums) : 0) + 1;
+    return `${prefix}${year}-${pad4(next)}`;
+  }
+
+  function nextQuotationNumber() {
+    return nextNumberFor("quotations", "QT");
+  }
+  function nextPONumber() {
+    return nextNumberFor("purchase_orders", "PO");
+  }
+
+  // ---------- Quotations ----------
+  async function getQuotations() {
+    const { data, error } = await sb.from("quotations").select("*").order("created_at", { ascending: false });
+    if (error) {
+      console.error(error);
+      qmsToast("โหลดข้อมูลใบเสนอราคาไม่สำเร็จ: " + error.message, "error");
+      return [];
+    }
+    return (data || []).map(mapQuotation);
+  }
+
+  async function getQuotation(id) {
+    const { data, error } = await sb.from("quotations").select("*").eq("id", id).maybeSingle();
+    if (error || !data) return null;
+    return mapQuotation(data);
+  }
+
+  async function saveQuotation(data) {
+    const totals = calcTotals(data.items || []);
+    const number = await nextQuotationNumber();
+    const row = {
+      number,
+      customer: data.customer,
+      contact: data.contact || null,
+      address: data.address,
+      phone: data.phone || null,
+      email: data.email || null,
+      region: data.region || REGIONS[0],
+      salesperson: data.salesperson,
+      date: data.date || null,
+      deadline: data.deadline || null,
+      payment_terms: data.paymentTerms || null,
+      custom_days: data.customDays || null,
+      items: data.items,
+      subtotal: totals.subtotal,
+      vat: totals.vat,
+      total: totals.total,
+      status: data.status || "draft",
+    };
+    const { data: inserted, error } = await sb.from("quotations").insert(row).select().single();
+    if (error) {
+      qmsToast("บันทึกใบเสนอราคาไม่สำเร็จ: " + error.message, "error");
+      throw error;
+    }
+    return mapQuotation(inserted);
+  }
+
+  async function updateQuotation(id, patch) {
+    const row = {};
+    if (patch.status) row.status = patch.status;
+    if (patch.items) {
+      const totals = calcTotals(patch.items);
+      row.items = patch.items;
+      row.subtotal = totals.subtotal;
+      row.vat = totals.vat;
+      row.total = totals.total;
+    }
+    const { data, error } = await sb.from("quotations").update(row).eq("id", id).select().single();
+    if (error) {
+      qmsToast("อัปเดตใบเสนอราคาไม่สำเร็จ: " + error.message, "error");
+      return null;
+    }
+    return mapQuotation(data);
+  }
+
+  async function deleteQuotation(id) {
+    const { error } = await sb.from("quotations").delete().eq("id", id);
+    if (error) qmsToast("ลบใบเสนอราคาไม่สำเร็จ: " + error.message, "error");
+  }
+
+  // ---------- Purchase Orders ----------
+  async function getPOs() {
+    const { data, error } = await sb.from("purchase_orders").select("*").order("created_at", { ascending: false });
+    if (error) {
+      console.error(error);
+      qmsToast("โหลดข้อมูลใบสั่งซื้อไม่สำเร็จ: " + error.message, "error");
+      return [];
+    }
+    return (data || []).map(mapPO);
+  }
+
+  async function getPO(id) {
+    const { data, error } = await sb.from("purchase_orders").select("*").eq("id", id).maybeSingle();
+    if (error || !data) return null;
+    return mapPO(data);
+  }
+
+  async function savePO(data) {
+    const totals = calcTotals(data.items || []);
+    const number = await nextPONumber();
+    const row = {
+      number,
+      vendor_name: data.vendorName,
+      date: data.date || null,
+      items: data.items,
+      subtotal: totals.subtotal,
+      vat: totals.vat,
+      total: totals.total,
+      status: data.status || "pending",
+    };
+    const { data: inserted, error } = await sb.from("purchase_orders").insert(row).select().single();
+    if (error) {
+      qmsToast("บันทึกใบสั่งซื้อไม่สำเร็จ: " + error.message, "error");
+      throw error;
+    }
+    return mapPO(inserted);
+  }
+
+  async function updatePO(id, patch) {
+    const row = {};
+    if (patch.status) row.status = patch.status;
+    if (patch.items) {
+      const totals = calcTotals(patch.items);
+      row.items = patch.items;
+      row.subtotal = totals.subtotal;
+      row.vat = totals.vat;
+      row.total = totals.total;
+    }
+    const { data, error } = await sb.from("purchase_orders").update(row).eq("id", id).select().single();
+    if (error) {
+      qmsToast("อัปเดตใบสั่งซื้อไม่สำเร็จ: " + error.message, "error");
+      return null;
+    }
+    return mapPO(data);
+  }
+
+  async function deletePO(id) {
+    const { error } = await sb.from("purchase_orders").delete().eq("id", id);
+    if (error) qmsToast("ลบใบสั่งซื้อไม่สำเร็จ: " + error.message, "error");
+  }
+
+  return {
+    REGIONS,
+    register,
+    verifyLogin,
+    logout,
+    getSession,
+    isLoggedIn,
+    getQuotations,
+    getQuotation,
+    saveQuotation,
+    updateQuotation,
+    deleteQuotation,
+    getPOs,
+    getPO,
+    savePO,
+    updatePO,
+    deletePO,
+    calcTotals,
+    formatCurrency,
+    formatCompact,
+    nextQuotationNumber,
+    nextPONumber,
+  };
+})();
+
+</script>
+<script>
+// ---------- Toast ----------
+window.qmsToast = function (message, type) {
+  type = type || "success";
+  let container = document.getElementById("qms-toast-container");
+  if (!container) {
+    container = document.createElement("div");
+    container.id = "qms-toast-container";
+    container.style.cssText =
+      "position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;";
+    document.body.appendChild(container);
+  }
+  const colors = {
+    success: "background:#00714d;color:#fff;",
+    error: "background:#ba1a1a;color:#fff;",
+    info: "background:#1e3a8a;color:#fff;",
+  };
+  const toast = document.createElement("div");
+  toast.textContent = message;
+  toast.style.cssText =
+    "padding:12px 20px;border-radius:8px;font-family:Inter,sans-serif;font-size:14px;font-weight:600;box-shadow:0 10px 15px -3px rgba(0,0,0,0.15);opacity:0;transition:opacity .2s ease, transform .2s ease;transform:translateY(8px);" +
+    (colors[type] || colors.success);
+  container.appendChild(toast);
+  requestAnimationFrame(() => {
+    toast.style.opacity = "1";
+    toast.style.transform = "translateY(0)";
+  });
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    toast.style.transform = "translateY(8px)";
+    setTimeout(() => toast.remove(), 250);
+  }, 2600);
+};
+
+// ---------- Router ----------
+(function () {
+  const PAGES = ["login", "dashboard", "quotation-new", "quotation-preview", "quotation-history", "po-new", "po-list"];
+
+  function parseHash() {
+    const raw = window.location.hash.slice(1) || "dashboard";
+    const [page, query] = raw.split("?");
+    return { page: PAGES.includes(page) ? page : "dashboard", params: new URLSearchParams(query || "") };
+  }
+
+  window.navigate = function (page, paramsObj) {
+    let hash = "#" + page;
+    if (paramsObj) {
+      const qs = new URLSearchParams(paramsObj).toString();
+      if (qs) hash += "?" + qs;
+    }
+    if (window.location.hash === hash) {
+      route();
+    } else {
+      window.location.hash = hash;
+    }
+  };
+
+  function showPage(page) {
+    document.querySelectorAll(".qms-page").forEach((el) => el.classList.add("hidden"));
+    const el = document.getElementById("page-" + page);
+    if (el) el.classList.remove("hidden");
+    window.scrollTo(0, 0);
+  }
+
+  async function applySessionInfo() {
+    const session = await QMS.getSession();
+    if (!session) return;
+    document.querySelectorAll("[data-user-name]").forEach((el) => (el.textContent = session.name));
+    document.querySelectorAll("[data-user-initials]").forEach((el) => {
+      const parts = session.name.trim().split(/\s+/);
+      el.textContent = parts.map((p) => p[0]).slice(0, 2).join("").toUpperCase();
+    });
+  }
+
+  async function route() {
+    const { page, params } = parseHash();
+    const loggedIn = await QMS.isLoggedIn();
+
+    if (page !== "login" && !loggedIn) {
+      showPage("login");
+      Login.init();
+      return;
+    }
+    if (page === "login" && loggedIn) {
+      window.location.hash = "#dashboard";
+      return;
+    }
+
+    showPage(page);
+    await applySessionInfo();
+
+    switch (page) {
+      case "login":
+        Login.init();
+        break;
+      case "dashboard":
+        Dashboard.render();
+        break;
+      case "quotation-new":
+        QN.init(params);
+        break;
+      case "quotation-preview":
+        QP.init(params);
+        break;
+      case "quotation-history":
+        QH.init();
+        break;
+      case "po-new":
+        PN.init();
+        break;
+      case "po-list":
+        PL.init();
+        break;
+    }
+  }
+
+  window.addEventListener("hashchange", route);
+
+  document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll("[data-logout]").forEach((el) => {
+      el.addEventListener("click", async (e) => {
+        e.preventDefault();
+        if (confirm("ออกจากระบบ? (Log out?)")) {
+          await QMS.logout();
+          window.location.hash = "#login";
+          route();
+        }
+      });
+    });
+
+    // Keep the UI in sync with Supabase auth state changes (e.g. token refresh, sign-out in another tab)
+    sb.auth.onAuthStateChange(() => route());
+
+    route();
+  });
+})();
+
+</script>
+<script>
+window.Login = (function () {
+  let wired = false;
+
+  function showRegister() {
+    document.getElementById("register-card").classList.remove("hidden");
+    document.getElementById("login-card").classList.add("hidden");
+  }
+  function showLogin() {
+    document.getElementById("register-card").classList.add("hidden");
+    document.getElementById("login-card").classList.remove("hidden");
+  }
+
+  function wire() {
+    if (wired) return;
+    wired = true;
+
+    document.getElementById("show-register-link").addEventListener("click", (e) => {
+      e.preventDefault();
+      showRegister();
+    });
+    document.getElementById("show-login-link").addEventListener("click", (e) => {
+      e.preventDefault();
+      showLogin();
+    });
+
+    document.getElementById("register-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("reg-name").value.trim() || "John Doe";
+      const email = document.getElementById("reg-email").value.trim();
+      const password = document.getElementById("reg-password").value;
+      const password2 = document.getElementById("reg-password2").value;
+      const code = document.getElementById("reg-code").value.trim();
+      const errorEl = document.getElementById("register-error");
+      const REGISTRATION_CODE = "7A977DD";
+
+      if (!email || !password || !code) {
+        errorEl.textContent = "กรุณากรอกอีเมล รหัสผ่าน และรหัสลงทะเบียน";
+        errorEl.classList.remove("hidden");
+        return;
+      }
+      if (password.length < 4) {
+        errorEl.textContent = "รหัสผ่านต้องมีอย่างน้อย 4 ตัวอักษร";
+        errorEl.classList.remove("hidden");
+        return;
+      }
+      if (password !== password2) {
+        errorEl.textContent = "รหัสผ่านยืนยันไม่ตรงกัน";
+        errorEl.classList.remove("hidden");
+        return;
+      }
+      if (code.toUpperCase() !== REGISTRATION_CODE) {
+        errorEl.textContent = "รหัสลงทะเบียนไม่ถูกต้อง กรุณาตรวจสอบและกรอกใหม่";
+        errorEl.classList.remove("hidden");
+        return;
+      }
+      errorEl.classList.add("hidden");
+
+      const btn = document.getElementById("register-submit");
+      const label = document.getElementById("register-submit-label");
+      label.innerHTML = '<span class="material-symbols-outlined animate-spin">progress_activity</span>';
+      btn.disabled = true;
+
+      try {
+        await QMS.register(name, email, password);
+        qmsToast("ตั้งค่าบัญชีสำเร็จ กรุณาตรวจสอบอีเมลหากต้องยืนยันบัญชี แล้วเข้าสู่ระบบ", "success");
+        showLogin();
+        document.getElementById("email").value = email;
+      } catch (err) {
+        errorEl.textContent = "สมัครใช้งานไม่สำเร็จ: " + (err.message || "กรุณาลองใหม่อีกครั้ง");
+        errorEl.classList.remove("hidden");
+      } finally {
+        btn.disabled = false;
+        label.textContent = "สร้างบัญชีและเข้าสู่ระบบ";
+      }
+    });
+
+    document.getElementById("login-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const errorEl = document.getElementById("login-error");
+
+      if (!email || !password) {
+        errorEl.textContent = "กรุณากรอกอีเมลและรหัสผ่าน";
+        errorEl.classList.remove("hidden");
+        return;
+      }
+
+      const btn = document.getElementById("login-submit");
+      const label = document.getElementById("login-submit-label");
+      label.innerHTML = '<span class="material-symbols-outlined animate-spin">progress_activity</span>';
+      btn.disabled = true;
+
+      const ok = await QMS.verifyLogin(email, password);
+      btn.disabled = false;
+      label.textContent = "Sign In";
+      if (!ok) {
+        errorEl.textContent = "อีเมลหรือรหัสผ่านไม่ถูกต้อง";
+        errorEl.classList.remove("hidden");
+        return;
+      }
+      errorEl.classList.add("hidden");
+      navigate("dashboard");
+    });
+  }
+
+  function init() {
+    wire();
+    document.getElementById("register-error").classList.add("hidden");
+    document.getElementById("login-error").classList.add("hidden");
+    document.getElementById("register-form").reset();
+    document.getElementById("login-form").reset();
+    document.getElementById("register-submit").disabled = false;
+    document.getElementById("register-submit-label").textContent = "สร้างบัญชีและเข้าสู่ระบบ";
+    document.getElementById("login-submit").disabled = false;
+    document.getElementById("login-submit-label").textContent = "Sign In";
+
+    showLogin();
+  }
+
+  return { init };
+})();
+</script>
+<script>
+window.Dashboard = (function () {
+
+  const STATUS_LABEL = { draft: "Draft", pending: "Pending", approved: "Approved", paid: "Paid" };
+  const STATUS_CHIP_CLASS = {
+    draft: "bg-surface-container-highest text-on-surface-variant",
+    pending: "bg-primary-fixed text-primary",
+    approved: "bg-secondary-container text-on-secondary-container",
+    paid: "bg-secondary-container text-on-secondary-container",
+  };
+
+  async function render() {
+    const quotations = await QMS.getQuotations();
+    const pos = await QMS.getPOs();
+
+    // Payment card — driven by PO amounts (paid vs pending/overdue)
+    const paidAmount = pos.filter((p) => p.status === "paid").reduce((s, p) => s + p.total, 0);
+    const unpaidAmount = pos.filter((p) => p.status !== "paid").reduce((s, p) => s + p.total, 0);
+    const totalAmount = paidAmount + unpaidAmount || 1;
+    document.getElementById("stat-paid").textContent = "฿" + QMS.formatCompact(paidAmount);
+    document.getElementById("stat-unpaid").textContent = "฿" + QMS.formatCompact(unpaidAmount);
+    const paidPct = Math.round((paidAmount / totalAmount) * 100);
+    document.getElementById("stat-paid-bar").style.width = paidPct + "%";
+    document.getElementById("stat-unpaid-bar").style.width = 100 - paidPct + "%";
+    document.getElementById("stat-paid-pct").textContent = paidPct + "% Collected";
+    document.getElementById("stat-unpaid-pct").textContent = 100 - paidPct + "% Outstanding";
+
+    // PO summary
+    document.getElementById("stat-po-total").textContent = pos.length;
+    document.getElementById("stat-po-pending").textContent = pos.filter((p) => p.status === "pending").length;
+
+    // Recent quotes table
+    const tbody = document.getElementById("recent-quotes-body");
+    const sorted = [...quotations].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const recent = sorted.slice(0, 5);
+    document.getElementById("recent-quotes-empty").classList.toggle("hidden", recent.length > 0);
+    tbody.innerHTML = recent
+      .map(
+        (q) => `
+      <tr class="hover:bg-surface-container-low transition-colors cursor-pointer" onclick="navigate('quotation-preview',{id:'${q.id}'})">
+        <td class="px-md py-md font-mono-data text-on-surface text-body-sm whitespace-nowrap">#${q.number}</td>
+        <td class="px-md py-md"><span class="font-body-sm text-body-sm text-on-surface whitespace-nowrap">${escapeHtml(q.customer)}</span></td>
+        <td class="px-md py-md font-mono-data text-on-surface text-right whitespace-nowrap">฿${QMS.formatCurrency(q.total)}</td>
+        <td class="px-md py-md"><span class="status-chip ${STATUS_CHIP_CLASS[q.status] || STATUS_CHIP_CLASS.draft} whitespace-nowrap uppercase">${STATUS_LABEL[q.status] || q.status}</span></td>
+        <td class="px-md py-md text-right"><span class="material-symbols-outlined text-outline">chevron_right</span></td>
+      </tr>`
+      )
+      .join("");
+
+    // This month / this year
+    const now = new Date();
+    const thisMonth = quotations.filter((q) => {
+      const d = new Date(q.createdAt);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    }).length;
+    const thisYear = quotations.filter((q) => new Date(q.createdAt).getFullYear() === now.getFullYear()).length;
+    document.getElementById("stat-month").textContent = thisMonth;
+    document.getElementById("stat-year").textContent = thisYear;
+    document.getElementById("stat-pending").textContent = quotations.filter((q) => q.status === "pending").length;
+    const approvedCount = quotations.filter((q) => q.status === "approved").length;
+    document.getElementById("stat-approved").textContent = approvedCount;
+    document.getElementById("stat-approved-rate").textContent =
+      (quotations.length ? Math.round((approvedCount / quotations.length) * 100) : 0) + "% Rate";
+
+    // Region breakdown
+    const regionCounts = {};
+    QMS.REGIONS.forEach((r) => (regionCounts[r] = 0));
+    quotations.forEach((q) => {
+      const r = q.region && QMS.REGIONS.includes(q.region) ? q.region : "อื่นๆ";
+      regionCounts[r] = (regionCounts[r] || 0) + 1;
+    });
+    const regionTotal = quotations.length || 1;
+    const regionEl = document.getElementById("region-breakdown");
+    regionEl.innerHTML = QMS.REGIONS.map((r) => {
+      const pct = Math.round(((regionCounts[r] || 0) / regionTotal) * 100);
+      return `<div class="flex items-center gap-md">
+        <div class="w-24 font-body-sm text-body-sm text-on-surface">${r}</div>
+        <div class="flex-1 h-3 bg-surface-container-low rounded-full overflow-hidden"><div class="h-full bg-primary" style="width:${pct}%"></div></div>
+        <div class="w-12 text-right font-mono-data text-body-sm">${pct}%</div>
+      </div>`;
+    }).join("");
+
+    // Growth chart — last 6 months
+    const months = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push(d);
+    }
+    const counts = months.map(
+      (d) => quotations.filter((q) => {
+        const qd = new Date(q.createdAt);
+        return qd.getMonth() === d.getMonth() && qd.getFullYear() === d.getFullYear();
+      }).length
+    );
+    const maxCount = Math.max(...counts, 1);
+    const chartEl = document.getElementById("growth-chart");
+    chartEl.innerHTML = months
+      .map((d, i) => {
+        const h = Math.max(6, Math.round((counts[i] / maxCount) * 100));
+        const label = d.toLocaleDateString("th-TH", { month: "short" });
+        return `<div class="flex-1 flex flex-col items-center justify-end gap-xs h-full">
+          <span class="text-[10px] text-on-surface-variant">${counts[i]}</span>
+          <div class="w-full bg-primary rounded-t-sm" style="height:${h}%" title="${label}: ${counts[i]}"></div>
+          <span class="text-[10px] text-on-surface-variant">${label}</span>
+        </div>`;
+      })
+      .join("");
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str || "";
+    return div.innerHTML;
+  }
+
+
+  return { render };
+})();
+
+</script>
+<script>
+window.QN = (function () {
+  function addItem() {
+    const tbody = document.getElementById('item-rows');
+    const row = document.createElement('tr');
+    row.className = "group border-b border-outline-variant/10 transition-colors hover:bg-surface-container-low/30";
+    row.innerHTML = `
+      <td class="px-lg py-md"><input required type="text" placeholder="รหัสสินค้า" class="w-full bg-transparent border-none p-0 font-body-lg text-body-lg focus:ring-0 sku"></td>
+      <td class="px-lg py-md"><input required type="text" placeholder="รายการสินค้า" class="w-full bg-transparent border-none p-0 font-body-lg text-body-lg focus:ring-0 desc"></td>
+      <td class="px-lg py-md text-center"><input required type="number" value="1" min="1" oninput="QN.calculateTotal()" class="qty w-full bg-transparent border-none p-0 font-body-lg text-body-lg focus:ring-0 text-center"></td>
+      <td class="px-lg py-md"><input type="text" placeholder="เส้น" class="unit w-full bg-transparent border-none p-0 font-body-lg text-body-lg focus:ring-0 text-on-surface-variant"></td>
+      <td class="px-lg py-md"><input required type="number" value="0.00" min="0" step="0.01" oninput="QN.calculateTotal()" class="price w-full bg-transparent border-none p-0 font-body-lg text-body-lg focus:ring-0 text-right"></td>
+      <td class="px-lg py-md text-right font-mono-data text-mono-data text-on-surface">฿<span class="row-total">0.00</span></td>
+      <td class="px-md py-md text-center"><button type="button" onclick="QN.deleteRow(this)" class="opacity-0 group-hover:opacity-100 text-error hover:scale-110 transition-all"><span class="material-symbols-outlined text-[20px]">delete</span></button></td>
+    `;
+    tbody.appendChild(row);
+  }
+
+  function deleteRow(btn) {
+    const rows = document.querySelectorAll('#item-rows tr');
+    if (rows.length <= 1) {
+      qmsToast('ต้องมีรายการสินค้าอย่างน้อย 1 รายการ', 'error');
+      return;
+    }
+    const row = btn.closest('tr');
+    row.style.opacity = '0';
+    row.style.transform = 'translateX(20px)';
+    setTimeout(() => { row.remove(); calculateTotal(); }, 200);
+  }
+
+  function calculateTotal() {
+    let sumAmounts = 0;
+    document.querySelectorAll('#item-rows tr').forEach((row) => {
+      const qtyInput = row.querySelector('.qty');
+      const priceInput = row.querySelector('.price');
+      if (qtyInput && priceInput) {
+        const qty = parseFloat(qtyInput.value) || 0;
+        const price = parseFloat(priceInput.value) || 0;
+        const amount = qty * price;
+        row.querySelector('.row-total').textContent = amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        sumAmounts += amount;
+      }
+    });
+    const grandTotal = sumAmounts;
+    const vat = (grandTotal * 7) / 107;
+    const totalBeforeVat = grandTotal - vat;
+    document.getElementById('total-before-vat').textContent = totalBeforeVat.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    document.getElementById('vat-amount').textContent = vat.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    document.getElementById('grand-total').textContent = grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function updateDeadline() {
+    const dateInput = document.getElementById('quote-date');
+    const deadlineInput = document.getElementById('quote-deadline');
+    const days = getPaymentDays();
+    if (dateInput.value) {
+      const date = new Date(dateInput.value);
+      date.setDate(date.getDate() + days);
+      deadlineInput.value = date.toISOString().split('T')[0];
+    }
+  }
+
+  function getPaymentDays() {
+    const val = document.getElementById('payment-terms-select').value;
+    if (val === 'custom') return parseInt(document.getElementById('custom-days').value, 10) || 30;
+    return parseInt(val, 10) || 30;
+  }
+
+  function handlePaymentTermsChange(value) {
+    const customContainer = document.getElementById('custom-days-container');
+    customContainer.classList.toggle('hidden', value !== 'custom');
+    updateDeadline();
+  }
+
+  function collectItems() {
+    const items = [];
+    document.querySelectorAll('#item-rows tr').forEach((row) => {
+      const sku = row.querySelector('.sku')?.value.trim();
+      const desc = row.querySelector('.desc')?.value.trim();
+      const qty = parseFloat(row.querySelector('.qty')?.value) || 0;
+      const unit = row.querySelector('.unit')?.value.trim() || 'หน่วย';
+      const price = parseFloat(row.querySelector('.price')?.value) || 0;
+      if (desc && qty > 0) items.push({ sku, desc, unit, qty, price });
+    });
+    return items;
+  }
+
+  function validateAndBuild() {
+    const customer = document.getElementById('f-customer').value.trim();
+    const address = document.getElementById('f-address').value.trim();
+    const salesperson = document.getElementById('f-salesperson').value.trim();
+    const items = collectItems();
+
+    if (!customer || !address || !salesperson) {
+      qmsToast('กรุณากรอกข้อมูลลูกค้าและพนักงานขายให้ครบ (* ช่องที่จำเป็น)', 'error');
+      return null;
+    }
+    if (items.length === 0) {
+      qmsToast('กรุณาเพิ่มรายการสินค้าอย่างน้อย 1 รายการ', 'error');
+      return null;
+    }
+    return {
+      customer,
+      contact: document.getElementById('f-contact').value.trim(),
+      address,
+      phone: document.getElementById('f-phone').value.trim(),
+      email: document.getElementById('f-email').value.trim(),
+      region: document.getElementById('f-region').value,
+      salesperson,
+      date: document.getElementById('quote-date').value,
+      deadline: document.getElementById('quote-deadline').value,
+      paymentTerms: document.getElementById('payment-terms-select').value,
+      customDays: document.getElementById('payment-terms-select').value === 'custom' ? getPaymentDays() : null,
+      items,
+    };
+  }
+
+  function fillItemRow(row, item) {
+    row.querySelector('.sku').value = item.sku || '';
+    row.querySelector('.desc').value = item.desc || '';
+    row.querySelector('.qty').value = item.qty || 1;
+    row.querySelector('.unit').value = item.unit || '';
+    row.querySelector('.price').value = item.price || 0;
+  }
+
+  function resetForm() {
+    const regionSelect = document.getElementById('f-region');
+    regionSelect.innerHTML = QMS.REGIONS.map((r) => `<option value="${r}">${r}</option>`).join('');
+
+    document.getElementById('f-customer').value = '';
+    document.getElementById('f-contact').value = '';
+    document.getElementById('f-address').value = '';
+    document.getElementById('f-phone').value = '';
+    document.getElementById('f-email').value = '';
+    document.getElementById('f-salesperson').value = '';
+    document.getElementById('payment-terms-select').value = '30';
+    document.getElementById('custom-days-container').classList.add('hidden');
+
+    const today = new Date();
+    document.getElementById('quote-date').value = today.toISOString().split('T')[0];
+
+    const tbody = document.getElementById('item-rows');
+    tbody.innerHTML = '';
+    addItem();
+  }
+
+  function init(params) {
+    resetForm();
+
+    if (params && params.get('duplicate') === '1') {
+      try {
+        const source = JSON.parse(sessionStorage.getItem('qms_duplicate_source') || 'null');
+        if (source) {
+          const regionSelect = document.getElementById('f-region');
+          document.getElementById('f-customer').value = source.customer || '';
+          document.getElementById('f-contact').value = source.contact || '';
+          document.getElementById('f-address').value = source.address || '';
+          document.getElementById('f-phone').value = source.phone || '';
+          document.getElementById('f-email').value = source.email || '';
+          if (source.region) regionSelect.value = source.region;
+          document.getElementById('f-salesperson').value = source.salesperson || '';
+          if (source.paymentTerms) document.getElementById('payment-terms-select').value = source.paymentTerms;
+          handlePaymentTermsChange(document.getElementById('payment-terms-select').value);
+          if (source.customDays) document.getElementById('custom-days').value = source.customDays;
+
+          const tbody = document.getElementById('item-rows');
+          tbody.innerHTML = '';
+          (source.items || []).forEach((item) => {
+            addItem();
+            fillItemRow(tbody.lastElementChild, item);
+          });
+          qmsToast('คัดลอกข้อมูลจากใบเสนอราคาเดิมแล้ว กรุณาตรวจสอบก่อนบันทึก', 'info');
+        }
+        sessionStorage.removeItem('qms_duplicate_source');
+      } catch (e) {}
+    }
+
+    updateDeadline();
+    calculateTotal();
+  }
+
+  document.getElementById('btn-save-draft').addEventListener('click', async () => {
+    const data = validateAndBuild();
+    if (!data) return;
+    data.status = 'draft';
+    const record = await QMS.saveQuotation(data);
+    qmsToast(`บันทึกฉบับร่าง #${record.number} แล้ว`, 'success');
+    setTimeout(() => navigate("quotation-preview", { id: record.id }), 500);
+  });
+
+  document.getElementById('btn-finalize').addEventListener('click', async () => {
+    const data = validateAndBuild();
+    if (!data) return;
+    data.status = 'pending';
+    const record = await QMS.saveQuotation(data);
+    qmsToast(`สร้างใบเสนอราคา #${record.number} สำเร็จ`, 'success');
+    setTimeout(() => navigate("quotation-preview", { id: record.id }), 500);
+  });
+
+  return { addItem, deleteRow, calculateTotal, updateDeadline, handlePaymentTermsChange, init };
+})();
+
+</script>
+<script>
+window.QP = (function () {
+  const STATUS_LABEL = { draft: "Draft", pending: "Pending", approved: "Approved", paid: "Paid" };
+  const STATUS_PILL_CLASS = {
+    draft: "bg-gray-200 text-gray-700",
+    pending: "bg-blue-100 text-blue-900",
+    approved: "bg-green-100 text-green-800",
+    paid: "bg-green-100 text-green-800",
+  };
+  const TERMS_LABEL = { "30": "30 วัน", "60": "60 วัน", "90": "90 วัน" };
+
+  let quotation = null;
+  let originalHtml = null;
+
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str || "";
+    return div.innerHTML;
+  }
+
+  function render() {
+    document.getElementById("doc-customer").textContent = quotation.customer || "-";
+    document.getElementById("doc-contact").textContent = quotation.contact || "-";
+    document.getElementById("doc-address").textContent = quotation.address || "-";
+    document.getElementById("doc-phone").textContent = quotation.phone || "-";
+    document.getElementById("doc-email").textContent = quotation.email || "-";
+    document.getElementById("doc-number").textContent = quotation.number;
+    document.getElementById("doc-date").textContent = quotation.date
+      ? new Date(quotation.date).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
+      : new Date(quotation.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+    document.getElementById("doc-salesperson").textContent = quotation.salesperson || "-";
+    document.getElementById("doc-deadline").textContent = quotation.deadline
+      ? new Date(quotation.deadline).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
+      : "-";
+    document.getElementById("doc-terms").textContent =
+      quotation.paymentTerms === "custom" ? `${quotation.customDays || "-"} วัน` : TERMS_LABEL[quotation.paymentTerms] || "-";
+
+    const itemsBody = document.getElementById("doc-items");
+    itemsBody.innerHTML = (quotation.items || [])
+      .map(
+        (it, i) => `<tr>
+        <td class="text-center">${escapeHtml(it.sku || String(i + 1))}</td>
+        <td>${escapeHtml(it.desc)}</td>
+        <td class="text-center">${it.qty}</td>
+        <td class="text-center">${escapeHtml(it.unit || "")}</td>
+        <td class="text-right">${QMS.formatCurrency(it.price)}</td>
+        <td class="text-right font-semibold">${QMS.formatCurrency(it.qty * it.price)}</td>
+      </tr>`
+      )
+      .join("");
+
+    document.getElementById("doc-subtotal").textContent = QMS.formatCurrency(quotation.subtotal);
+    document.getElementById("doc-vat").textContent = QMS.formatCurrency(quotation.vat);
+    document.getElementById("doc-total").textContent = QMS.formatCurrency(quotation.total);
+
+    const pill = document.getElementById("status-pill");
+    pill.textContent = STATUS_LABEL[quotation.status] || quotation.status;
+    pill.className = "status-pill " + (STATUS_PILL_CLASS[quotation.status] || STATUS_PILL_CLASS.draft);
+
+    const approveBtn = document.getElementById("btn-approve");
+    if (quotation.status === "approved" || quotation.status === "paid") {
+      approveBtn.innerHTML = '<span class="material-symbols-outlined">undo</span> Revert to Pending';
+    } else {
+      approveBtn.innerHTML = '<span class="material-symbols-outlined">check_circle</span> Mark as Approved';
+    }
+  }
+
+  function wireActions() {
+    document.getElementById("btn-approve")?.addEventListener("click", async () => {
+      if (!quotation) return;
+      const newStatus = quotation.status === "approved" || quotation.status === "paid" ? "pending" : "approved";
+      quotation = await QMS.updateQuotation(quotation.id, { status: newStatus });
+      render();
+      qmsToast(newStatus === "approved" ? "อนุมัติใบเสนอราคาแล้ว" : "เปลี่ยนสถานะเป็นรออนุมัติ", "success");
+    });
+
+    document.getElementById("btn-edit")?.addEventListener("click", () => {
+      if (!quotation) return;
+      sessionStorage.setItem("qms_duplicate_source", JSON.stringify(quotation));
+      navigate("quotation-new", { duplicate: "1" });
+    });
+
+    document.getElementById("btn-delete")?.addEventListener("click", async () => {
+      if (!quotation) return;
+      if (confirm(`ลบใบเสนอราคา #${quotation.number}? การกระทำนี้ไม่สามารถย้อนกลับได้`)) {
+        await QMS.deleteQuotation(quotation.id);
+        qmsToast("ลบใบเสนอราคาแล้ว", "success");
+        setTimeout(() => navigate("quotation-history"), 400);
+      }
+    });
+  }
+
+  async function init(params) {
+    const root = document.getElementById("doc-root");
+    if (originalHtml === null) originalHtml = root.innerHTML;
+    root.innerHTML = originalHtml;
+
+    const id = params ? params.get("id") : null;
+    quotation = id ? await QMS.getQuotation(id) : null;
+
+    if (!quotation) {
+      root.innerHTML =
+        '<div class="text-center py-24"><p class="text-xl font-bold text-gray-700 mb-2">ไม่พบใบเสนอราคานี้</p><a href="#quotation-history" class="text-blue-800 underline">กลับไปที่ประวัติใบเสนอราคา</a></div>';
+      return;
+    }
+    render();
+    wireActions();
+  }
+
+  return { init };
+})();
+
+</script>
+<script>
+window.QH = (function () {
+
+  const STATUS_LABEL = { draft: "Draft", pending: "Pending", approved: "Approved", paid: "Paid" };
+  const STATUS_CHIP_CLASS = {
+    draft: "bg-surface-container-highest text-on-surface-variant",
+    pending: "bg-primary-container/10 text-primary",
+    approved: "bg-secondary-container text-on-secondary-container",
+    paid: "bg-secondary-container text-on-secondary-container",
+  };
+  const STATUS_ICON = { draft: "edit_note", pending: "schedule", approved: "check_circle", paid: "check_circle" };
+  const MONTH_LABELS_TH = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
+
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str || "";
+    return div.innerHTML;
+  }
+
+  async function getFiltered() {
+    const term = document.getElementById("qh-search-input").value.trim().toLowerCase();
+    const status = document.getElementById("qh-status-filter").value;
+    const all = await QMS.getQuotations();
+    return all.filter((q) => {
+      const matchesTerm = !term || q.number.toLowerCase().includes(term) || (q.customer || "").toLowerCase().includes(term);
+      const matchesStatus = !status || q.status === status;
+      return matchesTerm && matchesStatus;
+    });
+  }
+
+  async function render() {
+    const list = (await getFiltered()).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    document.getElementById("history-empty").classList.toggle("hidden", list.length > 0);
+
+    const groups = {};
+    list.forEach((q) => {
+      const d = new Date(q.createdAt);
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      if (!groups[key]) groups[key] = { label: `${MONTH_LABELS_TH[d.getMonth()]} ${d.getFullYear() + 543}`, items: [] };
+      groups[key].items.push(q);
+    });
+
+    const container = document.getElementById("history-groups");
+    container.innerHTML = Object.keys(groups)
+      .sort()
+      .reverse()
+      .map((key) => {
+        const group = groups[key];
+        const rows = group.items
+          .map(
+            (q) => `
+          <tr class="hover:bg-surface-container-low transition-colors group" data-id="${q.id}">
+            <td class="py-3 px-sm"><input class="custom-checkbox row-check" type="checkbox" data-id="${q.id}"></td>
+            <td class="py-3 px-xs cursor-pointer" onclick="navigate('quotation-preview',{id:'${q.id}'})">
+              <div class="flex items-start mb-xs justify-start gap-sm">
+                <p class="font-mono-data text-mono-data text-on-surface font-bold">#${q.number}</p>
+                <div class="text-on-surface font-bold text-body-sm">฿ ${QMS.formatCurrency(q.total)}</div>
+              </div>
+              <h4 class="text-on-surface text-label-caps">${escapeHtml(q.customer)}</h4>
+              <div class="flex items-center flex-wrap mt-sm justify-start gap-sm">
+                <p class="text-[10px] text-outline">${new Date(q.createdAt).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" })}</p>
+                <span class="status-chip ${STATUS_CHIP_CLASS[q.status]}"><span class="material-symbols-outlined text-[14px]">${STATUS_ICON[q.status]}</span>${STATUS_LABEL[q.status]}</span>
+                <button class="flex items-center justify-center p-1 text-error hover:bg-error-container rounded-lg transition-colors active:scale-95" title="Delete" onclick="event.stopPropagation(); QH.removeQuotation('${q.id}', '${q.number}')">
+                  <span class="material-symbols-outlined text-[18px]">delete</span>
+                </button>
+              </div>
+            </td>
+          </tr>`
+          )
+          .join("");
+        return `<section>
+          <div class="flex items-center gap-md mb-md">
+            <h3 class="font-headline-md text-headline-md text-on-surface">${group.label}</h3>
+            <div class="h-px flex-1 bg-outline-variant opacity-30"></div>
+          </div>
+          <div class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant overflow-hidden">
+            <div class="overflow-x-auto hide-scrollbar">
+              <table class="w-full text-left border-collapse min-w-[600px]">
+                <thead><tr class="bg-surface-container text-on-surface-variant border-b border-outline-variant"><th class="py-3 px-sm w-px"></th><th class="py-3 font-label-caps text-label-caps px-sm">รายละเอียดรายการ</th></tr></thead>
+                <tbody class="divide-y divide-outline-variant">${rows}</tbody>
+              </table>
+            </div>
+          </div>
+        </section>`;
+      })
+      .join("");
+  }
+
+  async function removeQuotation(id, number) {
+    if (confirm(`ลบใบเสนอราคา #${number}?`)) {
+      await QMS.deleteQuotation(id);
+      qmsToast("ลบใบเสนอราคาแล้ว", "success");
+      render();
+    }
+  }
+
+  function getSelectedIds() {
+    return Array.from(document.querySelectorAll(".row-check:checked")).map((el) => el.dataset.id);
+  }
+
+  document.getElementById("qh-search-input").addEventListener("input", render);
+  document.getElementById("qh-status-filter").addEventListener("change", render);
+
+  document.getElementById("qh-btn-export-csv").addEventListener("click", async () => {
+    const list = await getFiltered();
+    if (!list.length) { qmsToast("ไม่มีข้อมูลให้ส่งออก", "error"); return; }
+    const header = ["Number", "Customer", "Date", "Status", "Subtotal", "VAT", "Total"];
+    const rows = list.map((q) => [q.number, q.customer, q.date || q.createdAt.slice(0, 10), q.status, q.subtotal.toFixed(2), q.vat.toFixed(2), q.total.toFixed(2)]);
+    const csv = [header, ...rows].map((r) => r.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `quotations-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    qmsToast("ส่งออกไฟล์ CSV แล้ว", "success");
+  });
+
+  document.getElementById("qh-btn-export-pdf").addEventListener("click", () => {
+    const selected = getSelectedIds();
+    if (!selected.length) {
+      qmsToast("กรุณาเลือกรายการที่ต้องการพิมพ์ก่อน (ติ๊กช่องด้านซ้าย)", "error");
+      return;
+    }
+    if (selected.length === 1) {
+      navigate("quotation-preview", {id: selected[0]});
+    } else {
+      window.print();
+    }
+  });
+
+
+  return { init: render, removeQuotation };
+})();
+
+</script>
+<script>
+window.PN = (function () {
+  function makeRow(desc, qty, price) {
+    const div = document.createElement('div');
+    div.className = 'group relative bg-surface-container-low p-md rounded-lg border border-outline-variant flex flex-col md:flex-row gap-md items-start animate-fade-in';
+    div.innerHTML = `
+      <div class="flex-1 w-full">
+        <label class="font-label-caps text-label-caps text-on-surface-variant block mb-xs">รายการ (Description)</label>
+        <input type="text" placeholder="ระบุรายการสินค้า..." class="desc w-full font-body-lg text-body-lg bg-transparent border-b border-outline-variant focus:border-primary outline-none py-xs" value="${desc || ''}">
+      </div>
+      <div class="w-full md:w-24">
+        <label class="font-label-caps text-label-caps text-on-surface-variant block mb-xs">จำนวน</label>
+        <input type="number" min="1" value="${qty ?? 1}" oninput="PN.calcPO()" class="qty w-full font-body-lg text-body-lg bg-transparent border-b border-outline-variant focus:border-primary outline-none py-xs text-center">
+      </div>
+      <div class="w-full md:w-32">
+        <label class="font-label-caps text-label-caps text-on-surface-variant block mb-xs">ราคาต่อหน่วย</label>
+        <input type="number" min="0" step="0.01" value="${price ?? 0}" oninput="PN.calcPO()" class="price w-full font-body-lg text-body-lg bg-transparent border-b border-outline-variant focus:border-primary outline-none py-xs text-right">
+      </div>
+      <div class="w-full md:w-32 flex flex-col items-end">
+        <label class="font-label-caps text-label-caps text-on-surface-variant block mb-xs text-right">ยอดรวม</label>
+        <span class="row-total font-mono-data text-mono-data py-xs">0.00</span>
+      </div>
+      <button type="button" class="absolute top-2 right-2 md:static text-error opacity-0 group-hover:opacity-100 transition-opacity" onclick="PN.removeRow(this)"><span class="material-symbols-outlined">delete</span></button>
+    `;
+    return div;
+  }
+
+  function addItem(desc, qty, price) {
+    document.getElementById('line-items-container').appendChild(makeRow(desc, qty, price));
+    calcPO();
+  }
+
+  function removeRow(btn) {
+    const container = document.getElementById('line-items-container');
+    if (container.children.length <= 1) {
+      qmsToast('ต้องมีรายการสินค้าอย่างน้อย 1 รายการ', 'error');
+      return;
+    }
+    btn.closest('.group').remove();
+    calcPO();
+  }
+
+  function calcPO() {
+    let subtotal = 0;
+    document.querySelectorAll('#line-items-container > div').forEach((row) => {
+      const qty = parseFloat(row.querySelector('.qty').value) || 0;
+      const price = parseFloat(row.querySelector('.price').value) || 0;
+      const amount = qty * price;
+      row.querySelector('.row-total').textContent = amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      subtotal += amount;
+    });
+    const total = subtotal;
+    const vat = (total * 7) / 107;
+    subtotal = total - vat;
+    document.getElementById('po-subtotal').textContent = subtotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' THB';
+    document.getElementById('po-vat').textContent = vat.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' THB';
+    document.getElementById('po-total').textContent = '฿ ' + total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function collectItems() {
+    const items = [];
+    document.querySelectorAll('#line-items-container > div').forEach((row) => {
+      const desc = row.querySelector('.desc').value.trim();
+      const qty = parseFloat(row.querySelector('.qty').value) || 0;
+      const price = parseFloat(row.querySelector('.price').value) || 0;
+      if (desc && qty > 0) items.push({ desc, qty, price });
+    });
+    return items;
+  }
+
+  document.getElementById('btn-save-po').addEventListener('click', async () => {
+    const vendorName = document.getElementById('f-vendor').value.trim();
+    const date = document.getElementById('f-date').value;
+    const items = collectItems();
+    if (!vendorName) { qmsToast('กรุณาระบุชื่อบริษัทผู้ขาย', 'error'); return; }
+    if (!items.length) { qmsToast('กรุณาเพิ่มรายการสินค้าอย่างน้อย 1 รายการ', 'error'); return; }
+
+    const record = await QMS.savePO({ vendorName, date, items, status: 'pending' });
+    qmsToast(`บันทึกใบสั่งซื้อ #${record.number} แล้ว`, 'success');
+    setTimeout(() => navigate('po-list'), 500);
+  });
+
+  async function init() {
+    document.getElementById('po-number-preview').textContent = await QMS.nextPONumber();
+    document.getElementById('f-vendor').value = '';
+    document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('line-items-container').innerHTML = '';
+    addItem('Michelin Primacy 4 215/55R17', 4, 4500);
+  }
+
+  return { addItem, removeRow, calcPO, init };
+})();
+
+</script>
+<script>
+window.PL = (function () {
+
+  const STATUS_LABEL = { pending: "รอชำระ", overdue: "เกินกำหนด", paid: "ชำระเงินแล้ว" };
+  const STATUS_CHIP_CLASS = {
+    pending: "bg-primary-container/10 text-primary",
+    overdue: "bg-error-container text-on-error-container",
+    paid: "bg-secondary-container text-on-secondary-container",
+  };
+  const STATUS_ICON = { pending: "schedule", overdue: "warning", paid: "check_circle" };
+  const MONTH_LABELS_TH = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
+
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str || "";
+    return div.innerHTML;
+  }
+
+  function effectiveStatus(po) {
+    if (po.status === "paid") return "paid";
+    const created = new Date(po.createdAt);
+    const daysOld = (Date.now() - created.getTime()) / 86400000;
+    return daysOld > 30 ? "overdue" : "pending";
+  }
+
+  async function getFiltered() {
+    const term = document.getElementById("pl-search-input").value.trim().toLowerCase();
+    const status = document.getElementById("pl-status-filter").value;
+    const all = await QMS.getPOs();
+    return all
+      .map((p) => ({ ...p, _status: effectiveStatus(p) }))
+      .filter((p) => {
+        const matchesTerm = !term || p.number.toLowerCase().includes(term) || (p.vendorName || "").toLowerCase().includes(term);
+        const matchesStatus = !status || p._status === status;
+        return matchesTerm && matchesStatus;
+      });
+  }
+
+  async function render() {
+    const list = (await getFiltered()).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    document.getElementById("po-empty").classList.toggle("hidden", list.length > 0);
+
+    const groups = {};
+    list.forEach((p) => {
+      const d = new Date(p.createdAt);
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      if (!groups[key]) groups[key] = { label: `${MONTH_LABELS_TH[d.getMonth()]} ${d.getFullYear() + 543}`, items: [] };
+      groups[key].items.push(p);
+    });
+
+    const container = document.getElementById("po-groups");
+    container.innerHTML = Object.keys(groups)
+      .sort()
+      .reverse()
+      .map((key) => {
+        const group = groups[key];
+        const rows = group.items
+          .map((p) => {
+            const status = p._status;
+            const paid = status === "paid";
+            return `
+          <tr class="${paid ? "opacity-70 hover:opacity-100" : ""} hover:bg-surface-container-low transition-all group">
+            <td class="py-3 px-sm"><input class="custom-checkbox paid-toggle" type="checkbox" data-id="${p.id}" ${paid ? "checked" : ""}></td>
+            <td class="py-3 px-xs">
+              <div class="flex items-start mb-xs justify-start gap-sm">
+                <p class="font-mono-data text-mono-data ${paid ? "text-on-surface-variant" : "text-on-surface"} font-bold">#${p.number}</p>
+                <div class="${paid ? "text-on-surface-variant line-through decoration-outline-variant" : status === "overdue" ? "text-error" : "text-on-surface"} font-bold text-body-sm">฿ ${QMS.formatCurrency(p.total)}</div>
+              </div>
+              <h4 class="${paid ? "text-on-surface-variant" : "text-on-surface"} text-label-caps">${escapeHtml(p.vendorName)}</h4>
+              <div class="flex items-center flex-wrap mt-sm justify-start gap-sm">
+                <p class="text-[10px] text-outline">${new Date(p.createdAt).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" })}</p>
+                <span class="status-chip ${STATUS_CHIP_CLASS[status]}"><span class="material-symbols-outlined text-[14px]">${STATUS_ICON[status]}</span>${STATUS_LABEL[status]}</span>
+                <button class="flex items-center justify-center p-1 text-error hover:bg-error-container rounded-lg transition-colors active:scale-95" title="Delete" onclick="PL.removePO('${p.id}', '${p.number}')">
+                  <span class="material-symbols-outlined text-[18px]">delete</span>
+                </button>
+              </div>
+            </td>
+          </tr>`;
+          })
+          .join("");
+        return `<section>
+          <div class="flex items-center gap-md mb-md">
+            <h3 class="font-headline-md text-headline-md text-on-surface">${group.label}</h3>
+            <div class="h-px flex-1 bg-outline-variant opacity-30"></div>
+          </div>
+          <div class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant overflow-hidden">
+            <div class="overflow-x-auto hide-scrollbar">
+              <table class="w-full text-left border-collapse min-w-[600px]">
+                <thead><tr class="bg-surface-container text-on-surface-variant border-b border-outline-variant"><th class="py-3 px-sm w-px"></th><th class="py-3 font-label-caps text-label-caps px-sm">รายละเอียดรายการ</th></tr></thead>
+                <tbody class="divide-y divide-outline-variant">${rows}</tbody>
+              </table>
+            </div>
+          </div>
+        </section>`;
+      })
+      .join("");
+
+    document.querySelectorAll(".paid-toggle").forEach((cb) => {
+      cb.addEventListener("change", async function () {
+        await QMS.updatePO(this.dataset.id, { status: this.checked ? "paid" : "pending" });
+        render();
+      });
+    });
+  }
+
+  async function removePO(id, number) {
+    if (confirm(`ลบใบสั่งซื้อ #${number}?`)) {
+      await QMS.deletePO(id);
+      qmsToast("ลบใบสั่งซื้อแล้ว", "success");
+      render();
+    }
+  }
+
+  document.getElementById("pl-search-input").addEventListener("input", render);
+  document.getElementById("pl-status-filter").addEventListener("change", render);
+
+  document.getElementById("pl-btn-export-csv").addEventListener("click", async () => {
+    const list = await getFiltered();
+    if (!list.length) { qmsToast("ไม่มีข้อมูลให้ส่งออก", "error"); return; }
+    const header = ["Number", "Vendor", "Date", "Status", "Subtotal", "VAT", "Total"];
+    const rows = list.map((p) => [p.number, p.vendorName, p.date || p.createdAt.slice(0, 10), p._status, p.subtotal.toFixed(2), p.vat.toFixed(2), p.total.toFixed(2)]);
+    const csv = [header, ...rows].map((r) => r.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `purchase-orders-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    qmsToast("ส่งออกไฟล์ CSV แล้ว", "success");
+  });
+
+
+  return { init: render, removePO };
+})();
+
+</script>
+</body>
+</html>
